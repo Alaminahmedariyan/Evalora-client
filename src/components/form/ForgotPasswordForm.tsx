@@ -9,6 +9,7 @@ import { useSendEmailOtp } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notify } from "@/lib/toast";
 
 const emailSchema = z.string().min(1, "Email is required").email("Enter a valid email");
 
@@ -19,16 +20,19 @@ export function ForgotPasswordForm() {
 
   const form = useForm({
     defaultValues: { email: "" },
-    onSubmit: async ({ value }) => {
-      setFormError(null);
-      try {
-        await sendOtpMutation.mutateAsync({ email: value.email, type: "forget-password" });
-        router.push(`/reset-password?email=${encodeURIComponent(value.email)}`);
-      } catch {
-        // Deliberately vague — don't reveal whether the email exists.
-        setFormError("Couldn't send the code. Please try again in a moment.");
-      }
-    },
+onSubmit: async ({ value }) => {
+  setFormError(null);
+  try {
+    await sendOtpMutation.mutateAsync({ email: value.email, type: "forget-password" });
+    notify.success("Code sent!", "Check your email for the reset code.");
+    router.push(`/reset-password?email=${encodeURIComponent(value.email)}`);
+  } catch {
+    // Deliberately vague — don't reveal whether the email exists.
+    const message = "Couldn't send the code. Please try again in a moment.";
+    setFormError(message);
+    notify.error(message);
+  }
+},
   });
 
   return (

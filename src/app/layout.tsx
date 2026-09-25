@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("h-full", geistSans.variable, geistMono.variable)}>
-      <body className="min-h-full font-sans antialiased">
+      <body className="min-h-full font-sans suppressHydrationWarning antialiased">
         <QueryProvider>
           <div className="flex min-h-full flex-col">{children}</div>
           <Toaster richColors position="top-right" closeButton />

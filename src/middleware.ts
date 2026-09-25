@@ -49,9 +49,9 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = Boolean(role);
 
   // Logged-in user hitting "/" or any auth-only page → send to their own dashboard
-  if (isLoggedIn && (pathname === "/" || AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p)))) {
-    return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
-  }
+if (isLoggedIn && AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))) {
+  return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
+}
 
   // Anonymous or wrong-role user hitting a role-scoped dashboard path
   const matchedPrefix = Object.keys(ROLE_BY_PREFIX).find(

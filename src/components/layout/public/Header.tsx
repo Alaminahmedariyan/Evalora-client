@@ -25,9 +25,7 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
           <Logo />
-          <span className="bg-linear-to-r from-[#06D1D4] via-[#3B82D0] to-[#3628A0] bg-clip-text text-sm font-semibold tracking-tight text-transparent">
-            Evalora
-          </span>
+          <span className="text-sm font-semibold tracking-tight text-foreground">Evalora</span>
         </Link>
 
         <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">

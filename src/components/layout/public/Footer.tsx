@@ -1,3 +1,4 @@
+import Logo from "@/assets/svg/logo";
 import Link from "next/link";
 import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 
@@ -33,18 +34,12 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="flex flex-col gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <span
-                className="brand-accent-strip size-2.5 rounded-full"
-                aria-hidden="true"
-              />
-              <span className="text-sm font-semibold tracking-tight">
-                Evalora
-              </span>
+              <Logo />
+              <span className="text-sm font-semibold tracking-tight text-foreground">Evalora</span>
             </Link>
 
             <p className="max-w-xs text-sm text-muted-foreground">
-              Hire developers based on what they can actually build — coding
-              assessments with proctoring, built for engineering teams.
+              Hire developers based on what they can actually build — coding assessments with proctoring, built for engineering teams.
             </p>
 
             <div className="mt-2 flex items-center gap-3">
@@ -81,13 +76,7 @@ export function Footer() {
   );
 }
 
-function FooterColumn({
-  title,
-  links,
-}: {
-  title: string;
-  links: { label: string; href: string }[];
-}) {
+function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-sm font-semibold">{title}</h3>
@@ -95,10 +84,7 @@ function FooterColumn({
       <ul className="flex flex-col gap-2">
         {links.map((link) => (
           <li key={link.href}>
-            <Link
-              href={link.href}
-              className="interactive text-sm text-muted-foreground hover:text-foreground"
-            >
+            <Link href={link.href} className="interactive text-sm text-muted-foreground hover:text-foreground">
               {link.label}
             </Link>
           </li>

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registerFields, registerSchema } from "@/validation";
+import { notify } from "@/lib/toast";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -24,30 +25,30 @@ export function RegisterForm() {
   const form = useForm({
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
 
-    onSubmit: async ({ value, formApi }) => {
-      setFormError(null);
+onSubmit: async ({ value, formApi }) => {
+  setFormError(null);
 
-      const parsed = registerSchema.safeParse(value);
-      if (!parsed.success) {
-        void formApi.validateAllFields("submit");
-        return;
-      }
+  const parsed = registerSchema.safeParse(value);
+  if (!parsed.success) {
+    void formApi.validateAllFields("submit");
+    return;
+  }
 
-      try {
-        // Backend's Better Auth config has emailVerification.sendOnSignUp:
-        // true, so the verification OTP is already sent as a side effect
-        // of this call — no separate sendEmailOtp() needed here.
-        await registerMutation.mutateAsync({
-          name: value.name,
-          email: value.email,
-          password: value.password,
-        });
+  try {
+    await registerMutation.mutateAsync({
+      name: value.name,
+      email: value.email,
+      password: value.password,
+    });
 
-        router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
-      } catch (error) {
-        setFormError(isApiError(error) ? error.message : "Couldn't create your account.");
-      }
-    },
+    notify.success("Account created!", "Check your email for a verification code.");
+    router.push(`/verify-email?email=${encodeURIComponent(value.email)}`);
+  } catch (error) {
+    const message = isApiError(error) ? error.message : "Couldn't create your account.";
+    setFormError(message);
+    notify.error("Registration failed", message);
+  }
+},
   });
 
   return (

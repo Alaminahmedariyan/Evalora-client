@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resetPasswordFields, resetPasswordSchema } from "@/validation";
 import { OtpInput } from "@/components/ui/otp-input";
+import { notify } from "@/lib/toast";
 
 export function ResetPasswordForm({ email }: { email: string }) {
   const router = useRouter();
@@ -19,22 +20,24 @@ export function ResetPasswordForm({ email }: { email: string }) {
 
   const form = useForm({
     defaultValues: { otp: "", newPassword: "", confirmPassword: "" },
-    onSubmit: async ({ value, formApi }) => {
-      setFormError(null);
+onSubmit: async ({ value, formApi }) => {
+  setFormError(null);
+  const parsed = resetPasswordSchema.safeParse(value);
+  if (!parsed.success) {
+    void formApi.validateAllFields("submit");
+    return;
+  }
 
-      const parsed = resetPasswordSchema.safeParse(value);
-      if (!parsed.success) {
-        void formApi.validateAllFields("submit");
-        return;
-      }
-
-      try {
-        await resetMutation.mutateAsync({ email, otp: value.otp, newPassword: value.newPassword });
-        router.push("/login");
-      } catch (error) {
-        setFormError(isApiError(error) ? error.message : "Couldn't reset your password.");
-      }
-    },
+  try {
+    await resetMutation.mutateAsync({ email, otp: value.otp, newPassword: value.newPassword });
+    notify.success("Password updated!", "Please log in with your new password.");
+    router.push("/login");
+  } catch (error) {
+    const message = isApiError(error) ? error.message : "Couldn't reset your password.";
+    setFormError(message);
+    notify.error("Reset failed", message);
+  }
+},
   });
 
   return (

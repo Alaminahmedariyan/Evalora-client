@@ -4,3 +4,5 @@ export { VerifyEmailForm } from "./VerifyEmailForm";
 export { ForgotPasswordForm } from "./ForgotPasswordForm";
 export { ResetPasswordForm } from "./ResetPasswordForm";
 export { TwoFactorForm } from "./TwoFactorForm";
+export { RegisterCompanyForm } from "./RegisterCompanyForm";
+export { UpdateCompanyForm } from "./UpdateCompanyForm";

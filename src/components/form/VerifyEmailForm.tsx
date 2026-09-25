@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { otpSchema } from "@/validation";
 import { OtpInput } from "@/components/ui/otp-input";
+import { notify } from "@/lib/toast";
+import { celebrate } from "@/lib/confetti";
 
 export function VerifyEmailForm({ email }: { email: string }) {
   const router = useRouter();
@@ -23,10 +25,14 @@ export function VerifyEmailForm({ email }: { email: string }) {
       setFormError(null);
       try {
         await verifyMutation.mutateAsync({ email, otp: value.otp });
+        celebrate();
+        notify.success("Email verified!", "Welcome to Evalora.");
         router.push("/");
         router.refresh();
       } catch (error) {
-        setFormError(isApiError(error) ? error.message : "That code didn't work.");
+        const message = isApiError(error) ? error.message : "That code didn't work.";
+        setFormError(message);
+        notify.error("Verification failed", message);
       }
     },
   });
@@ -54,10 +60,7 @@ export function VerifyEmailForm({ email }: { email: string }) {
         </div>
       ) : null}
 
-      <form.Field
-        name="otp"
-        validators={{ onBlur: ({ value }) => otpSchema.safeParse(value).error?.issues[0]?.message }}
-      >
+      <form.Field name="otp" validators={{ onBlur: ({ value }) => otpSchema.safeParse(value).error?.issues[0]?.message }}>
         {(field) => {
           const hasError = field.state.meta.errors.length > 0;
           return (
@@ -87,7 +90,12 @@ export function VerifyEmailForm({ email }: { email: string }) {
 
       <button
         type="button"
-        onClick={() => resendMutation.mutate({ email, type: "email-verification" })}
+        onClick={() => {
+          resendMutation.mutate(
+            { email, type: "email-verification" },
+            { onSuccess: () => notify.success("Code resent — check your email.") },
+          );
+        }}
         disabled={resendMutation.isPending || resendMutation.isSuccess}
         className="interactive text-center text-sm text-primary hover:underline disabled:pointer-events-none disabled:opacity-60"
       >

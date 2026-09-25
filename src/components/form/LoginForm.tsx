@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "@/validation";
+import { notify } from "@/lib/toast";
 
 export function LoginForm() {
   const router = useRouter();
@@ -24,35 +25,33 @@ export function LoginForm() {
   const form = useForm({
     defaultValues: { email: "", password: "" },
 
-    onSubmit: async ({ value, formApi }) => {
-      setFormError(null);
+onSubmit: async ({ value, formApi }) => {
+  setFormError(null);
 
-      const parsed = loginSchema.safeParse(value);
-      if (!parsed.success) {
-        void formApi.validateAllFields("submit");
-        return;
-      }
+  const parsed = loginSchema.safeParse(value);
+  if (!parsed.success) {
+    void formApi.validateAllFields("submit");
+    return;
+  }
 
-      try {
-        const res = await loginMutation.mutateAsync(value);
+  try {
+    const res = await loginMutation.mutateAsync(value);
 
-        // Better Auth returns this shape (no user/token yet) when the
-        // account has 2FA enabled — the custom REST layer doesn't wrap
-        // 2FA verification, so we hand off to Better Auth's own client
-        // for that one step (same exception as social login below).
-        if (res.data?.twoFactorRedirect) {
-          router.push("/two-factor");
-          return;
-        }
+    if (res.data?.twoFactorRedirect) {
+      notify.info("Two-factor verification required");
+      router.push("/two-factor");
+      return;
+    }
 
-        router.push("/");
-        router.refresh();
-      } catch (error) {
-        setFormError(
-          isApiError(error) ? error.message : "Couldn't log you in. Check your email and password.",
-        );
-      }
-    },
+    notify.success("Welcome back!");
+    router.push("/");
+    router.refresh();
+  } catch (error) {
+    const message = isApiError(error) ? error.message : "Couldn't log you in. Check your email and password.";
+    setFormError(message);
+    notify.error("Login failed", message);
+  }
+},
   });
 
   return (
