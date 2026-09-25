@@ -1,8 +1,13 @@
-export default function VerifyEmailPage() {
-  return (
-    <div>
-      <h1>Verify your email</h1>
-      {/* TODO: implement */}
-    </div>
-  );
+import { VerifyEmailForm } from "@/components/form";
+import { redirect } from "next/navigation";
+
+export default async function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>;
+}) {
+  const { email } = await searchParams;
+  if (!email) redirect("/register");
+
+  return <VerifyEmailForm email={email} />;
 }

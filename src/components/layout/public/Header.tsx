@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import Logo from "@/assets/svg/logo";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -23,8 +24,10 @@ export function Header() {
     <header className="glass-header sticky top-0 z-40">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-          <span className="brand-accent-strip size-2.5 rounded-full" aria-hidden="true" />
-          <span className="text-sm font-semibold tracking-tight">Evalora</span>
+          <Logo />
+          <span className="bg-linear-to-r from-[#06D1D4] via-[#3B82D0] to-[#3628A0] bg-clip-text text-sm font-semibold tracking-tight text-transparent">
+            Evalora
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
@@ -34,10 +37,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn(
-                  "interactive hover:text-foreground",
-                  active && "font-medium text-foreground",
-                )}
+                className={cn("interactive hover:text-foreground", active && "font-medium text-foreground")}
               >
                 {link.label}
               </Link>
