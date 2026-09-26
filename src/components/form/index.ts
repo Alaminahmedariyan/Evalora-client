@@ -6,3 +6,5 @@ export { ResetPasswordForm } from "./ResetPasswordForm";
 export { TwoFactorForm } from "./TwoFactorForm";
 export { RegisterCompanyForm } from "./RegisterCompanyForm";
 export { UpdateCompanyForm } from "./UpdateCompanyForm";
+export { CreateProblemForm } from "./CreateProblemForm";
+export { EditProblemForm } from "./EditProblemForm";
