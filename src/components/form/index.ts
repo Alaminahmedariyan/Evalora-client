@@ -8,3 +8,4 @@ export { RegisterCompanyForm } from "./RegisterCompanyForm";
 export { UpdateCompanyForm } from "./UpdateCompanyForm";
 export { CreateProblemForm } from "./CreateProblemForm";
 export { EditProblemForm } from "./EditProblemForm";
+export { CreateAssessmentForm } from "./CreateAssessmentForm";
