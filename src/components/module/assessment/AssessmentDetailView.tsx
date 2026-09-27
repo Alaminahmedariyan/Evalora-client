@@ -1,33 +1,43 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, Repeat } from "lucide-react";
+import { Calendar, Clock, Pencil, Repeat } from "lucide-react";
 
 import type { AssessmentDetail } from "@/types";
-import { useCloseAssessment, useDeleteAssessment, usePublishAssessment } from "@/hooks";
+import { useCloseAssessment, useCreateAssessmentVersion, useDeleteAssessment, usePublishAssessment } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { celebrate } from "@/lib/confetti";
 import { isApiError } from "@/lib/apiClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AssessmentStatusBadge } from "./AssessmentStatusBadge";
+import { VersionHistory } from "./VersionHistory";
 import { ProblemTypeBadge } from "@/components/module/problem/ProblemTypeBadge";
 import { DifficultyBadge } from "@/components/module/problem/DifficultyBadge";
-import { InviteCandidatesForm } from "@/components/form";
-import { InvitationList } from "../invitation/InvitationList";
-import { Leaderboard } from "../result";
-import { PendingQueue } from "../evaluation";
+import { InvitationList } from "@/components/module/invitation";
+import { Leaderboard } from "@/components/module/result";
+import { PendingQueue } from "@/components/module/evaluation";
+import { InviteCandidatesForm, EditAssessmentForm } from "@/components/form";
 
 function formatDate(value: string | null) {
   if (!value) return null;
   return new Date(value).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
+const VISIBLE_TO_CANDIDATES = ["PUBLISHED", "ACTIVE"] as const;
+const HAS_HISTORY_TO_SHOW = ["PUBLISHED", "ACTIVE", "CLOSED"] as const;
+
 export function AssessmentDetailView({ assessment }: { assessment: AssessmentDetail }) {
   const router = useRouter();
+  const [editing, setEditing] = useState(false);
   const publishMutation = usePublishAssessment();
   const closeMutation = useCloseAssessment();
   const deleteMutation = useDeleteAssessment();
+  const createVersionMutation = useCreateAssessmentVersion();
+
+  const isOpenForInvites = (VISIBLE_TO_CANDIDATES as readonly string[]).includes(assessment.status);
+  const hasHistoryToShow = (HAS_HISTORY_TO_SHOW as readonly string[]).includes(assessment.status);
 
   async function handlePublish() {
     try {
@@ -60,6 +70,20 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
     }
   }
 
+  async function handleCreateVersion() {
+    try {
+      const res = await createVersionMutation.mutateAsync(assessment.id);
+      notify.success("New draft version created");
+      router.push(`/recruiter/assessments/${res.data.id}`);
+    } catch (error) {
+      notify.error("Couldn't create a new version", isApiError(error) ? error.message : undefined);
+    }
+  }
+
+  if (editing) {
+    return <EditAssessmentForm assessment={assessment} onSaved={() => setEditing(false)} onCancel={() => setEditing(false)} />;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-2">
@@ -88,20 +112,29 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
         ) : null}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {assessment.status === "DRAFT" ? (
-          <Button onClick={handlePublish} isLoading={publishMutation.isPending}>
-            Publish
-          </Button>
+          <>
+            <Button onClick={handlePublish} isLoading={publishMutation.isPending}>
+              Publish
+            </Button>
+            <Button variant="outline" onClick={() => setEditing(true)}>
+              <Pencil className="size-3.5" aria-hidden="true" />
+              Edit
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} isLoading={deleteMutation.isPending}>
+              Delete
+            </Button>
+          </>
         ) : null}
         {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" ? (
           <Button variant="outline" onClick={handleClose} isLoading={closeMutation.isPending}>
             Close
           </Button>
         ) : null}
-        {assessment.status === "DRAFT" ? (
-          <Button variant="destructive" onClick={handleDelete} isLoading={deleteMutation.isPending}>
-            Delete
+        {assessment.status !== "DRAFT" && assessment.isLatestVersion ? (
+          <Button variant="outline" onClick={handleCreateVersion} isLoading={createVersionMutation.isPending}>
+            Create new version
           </Button>
         ) : null}
       </div>
@@ -123,28 +156,40 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
             ))}
           </CardContent>
         </Card>
-        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" ? (
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Invitations</h2>
-              <InviteCandidatesForm assessmentId={assessment.id} />
-            </div>
-            <InvitationList assessmentId={assessment.id} />
-          </div>
-        ) : null}
+      </div>
 
-        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" || assessment.status === "CLOSED" ? (
-          <div>
-            <h2 className="mb-3 text-sm font-semibold">Leaderboard</h2>
-            <Leaderboard assessmentId={assessment.id} />
+      {isOpenForInvites ? (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Invitations</h2>
+            <InviteCandidatesForm assessmentId={assessment.id} />
           </div>
-        ) : null}
-        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" || assessment.status === "CLOSED" ? (
-          <div>
-            <h2 className="mb-3 text-sm font-semibold">Grading queue</h2>
-            <PendingQueue assessmentId={assessment.id} />
-          </div>
-        ) : null}
+          <InvitationList assessmentId={assessment.id} />
+        </div>
+      ) : hasHistoryToShow ? (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold">Invitations</h2>
+          <InvitationList assessmentId={assessment.id} />
+        </div>
+      ) : null}
+
+      {hasHistoryToShow ? (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold">Leaderboard</h2>
+          <Leaderboard assessmentId={assessment.id} />
+        </div>
+      ) : null}
+
+      {hasHistoryToShow ? (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold">Grading queue</h2>
+          <PendingQueue assessmentId={assessment.id} />
+        </div>
+      ) : null}
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold">Version history</h2>
+        <VersionHistory assessmentId={assessment.id} currentId={assessment.id} />
       </div>
     </div>
   );
