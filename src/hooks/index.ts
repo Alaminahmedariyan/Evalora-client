@@ -6,3 +6,4 @@ export * from "./assessment.hook";
 export * from "./invitation.hook";
 export * from "./attempt.hook";
 export * from "./result.hook";
+export * from "./evaluation.hook";

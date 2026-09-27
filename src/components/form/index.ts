@@ -10,3 +10,4 @@ export { CreateProblemForm } from "./CreateProblemForm";
 export { EditProblemForm } from "./EditProblemForm";
 export { CreateAssessmentForm } from "./CreateAssessmentForm";
 export { InviteCandidatesForm } from "./InviteCandidatesForm";
+export { EvaluateSubmissionForm } from "./EvaluateSubmissionForm";

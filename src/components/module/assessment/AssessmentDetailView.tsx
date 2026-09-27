@@ -16,6 +16,7 @@ import { DifficultyBadge } from "@/components/module/problem/DifficultyBadge";
 import { InviteCandidatesForm } from "@/components/form";
 import { InvitationList } from "../invitation/InvitationList";
 import { Leaderboard } from "../result";
+import { PendingQueue } from "../evaluation";
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -136,6 +137,12 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
           <div>
             <h2 className="mb-3 text-sm font-semibold">Leaderboard</h2>
             <Leaderboard assessmentId={assessment.id} />
+          </div>
+        ) : null}
+        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" || assessment.status === "CLOSED" ? (
+          <div>
+            <h2 className="mb-3 text-sm font-semibold">Grading queue</h2>
+            <PendingQueue assessmentId={assessment.id} />
           </div>
         ) : null}
       </div>

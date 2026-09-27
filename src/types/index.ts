@@ -8,3 +8,4 @@ export * from "./assessment.type";
 export * from "./invitation.type";
 export * from "./attempt.type";
 export * from "./result.type";
+export * from "./evaluation.type";

@@ -6,3 +6,4 @@ export * from "./assessment.api";
 export * from "./invitation.api";
 export * from "./attempt.api";
 export * from "./result.api";
+export * from "./evaluation.api";
