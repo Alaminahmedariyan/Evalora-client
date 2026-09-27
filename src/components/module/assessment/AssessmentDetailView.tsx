@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { AssessmentStatusBadge } from "./AssessmentStatusBadge";
 import { ProblemTypeBadge } from "@/components/module/problem/ProblemTypeBadge";
 import { DifficultyBadge } from "@/components/module/problem/DifficultyBadge";
+import { InviteCandidatesForm } from "@/components/form";
+import { InvitationList } from "../invitation/InvitationList";
+import { Leaderboard } from "../result";
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -90,7 +93,7 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
             Publish
           </Button>
         ) : null}
-        {(assessment.status === "PUBLISHED" || assessment.status === "ACTIVE") ? (
+        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" ? (
           <Button variant="outline" onClick={handleClose} isLoading={closeMutation.isPending}>
             Close
           </Button>
@@ -119,6 +122,22 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
             ))}
           </CardContent>
         </Card>
+        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" ? (
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Invitations</h2>
+              <InviteCandidatesForm assessmentId={assessment.id} />
+            </div>
+            <InvitationList assessmentId={assessment.id} />
+          </div>
+        ) : null}
+
+        {assessment.status === "PUBLISHED" || assessment.status === "ACTIVE" || assessment.status === "CLOSED" ? (
+          <div>
+            <h2 className="mb-3 text-sm font-semibold">Leaderboard</h2>
+            <Leaderboard assessmentId={assessment.id} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

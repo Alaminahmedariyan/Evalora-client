@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssessmentStatusBadge } from "./AssessmentStatusBadge";
-import { EmptyState } from "@/components/ui/emty-stat";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const STATUS_OPTIONS: { value: AssessmentStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All statuses" },

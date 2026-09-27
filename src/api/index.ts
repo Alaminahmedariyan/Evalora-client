@@ -3,3 +3,6 @@ export * from "./admin.api";
 export * from "./company.api";
 export * from "./problem.api";
 export * from "./assessment.api";
+export * from "./invitation.api";
+export * from "./attempt.api";
+export * from "./result.api";

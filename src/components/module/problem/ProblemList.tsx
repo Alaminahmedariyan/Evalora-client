@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProblemTypeBadge } from "./ProblemTypeBadge";
 import { DifficultyBadge } from "./DifficultyBadge";
-import { EmptyState } from "@/components/ui/emty-stat";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const TYPE_OPTIONS: { value: ProblemType | "ALL"; label: string }[] = [
   { value: "ALL", label: "All types" },
@@ -52,10 +52,7 @@ export function ProblemList() {
       await deleteMutation.mutateAsync(id);
       notify.success("Problem deleted");
     } catch (error) {
-      notify.error(
-        "Couldn't delete problem",
-        isApiError(error) ? error.message : undefined,
-      );
+      notify.error("Couldn't delete problem", isApiError(error) ? error.message : undefined);
     }
   }
 
@@ -113,16 +110,11 @@ export function ProblemList() {
       {isPending ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 5 }, (_, index) => (
-            <Skeleton
-              key={`problem-skeleton-${index + 1}`}
-              className="h-12 w-full"
-            />
+            <Skeleton key={`problem-skeleton-${index + 1}`} className="h-12 w-full" />
           ))}
         </div>
       ) : isError ? (
-        <div className="status-danger rounded-md border px-4 py-3 text-sm">
-          Couldn&apos;t load problems. Try refreshing the page.
-        </div>
+        <div className="status-danger rounded-md border px-4 py-3 text-sm">Couldn&apos;t load problems. Try refreshing the page.</div>
       ) : !data?.data.length ? (
         <EmptyState
           icon={Code2}
@@ -130,8 +122,7 @@ export function ProblemList() {
           description="Create your first problem to start building assessments."
           action={{
             label: "New problem",
-            onClick: () =>
-              (window.location.href = "/recruiter/problems/new"),
+            onClick: () => (window.location.href = "/recruiter/problems/new"),
           }}
         />
       ) : (
@@ -150,15 +141,9 @@ export function ProblemList() {
 
               <tbody>
                 {data.data.map((problem) => (
-                  <tr
-                    key={problem.id}
-                    className="interactive border-b border-border last:border-0 hover:bg-accent/50"
-                  >
+                  <tr key={problem.id} className="interactive border-b border-border last:border-0 hover:bg-accent/50">
                     <td className="px-4 py-3 font-medium">
-                      <Link
-                        href={`/recruiter/problems/${problem.id}`}
-                        className="hover:text-primary"
-                      >
+                      <Link href={`/recruiter/problems/${problem.id}`} className="hover:text-primary">
                         {problem.title}
                       </Link>
                     </td>
@@ -171,23 +156,16 @@ export function ProblemList() {
                       <DifficultyBadge difficulty={problem.difficulty} />
                     </td>
 
-                    <td className="stat-number px-4 py-3">
-                      {problem.defaultMarks}
-                    </td>
+                    <td className="stat-number px-4 py-3">{problem.defaultMarks}</td>
 
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() =>
-                          handleDelete(problem.id, problem.title)
-                        }
+                        onClick={() => handleDelete(problem.id, problem.title)}
                         className="interactive rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger"
                         aria-label={`Delete ${problem.title}`}
                       >
-                        <Trash2
-                          className="size-4"
-                          aria-hidden="true"
-                        />
+                        <Trash2 className="size-4" aria-hidden="true" />
                       </button>
                     </td>
                   </tr>
@@ -203,21 +181,11 @@ export function ProblemList() {
               </span>
 
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
                   Previous
                 </Button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= data.meta.totalPage}
-                  onClick={() => setPage((p) => p + 1)}
-                >
+                <Button variant="outline" size="sm" disabled={page >= data.meta.totalPage} onClick={() => setPage((p) => p + 1)}>
                   Next
                 </Button>
               </div>
