@@ -3,21 +3,13 @@
 import { useState } from "react";
 import { Gauge } from "lucide-react";
 
-import { useCancelSubscription, useMySubscription, useUpdateSubscription } from "@/hooks";
+import { useCancelSubscription, useCreateCheckout, useMySubscription, useUpdateSubscription } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { isApiError } from "@/lib/apiClient";
+import { PLAN_LABEL, PLAN_ORDER, PLAN_PRICE_DISPLAY, type SubscriptionPlan } from "@/constants/plans";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { SubscriptionPlan } from "@/types";
-
-const PLAN_ORDER: SubscriptionPlan[] = ["FREE", "PRO", "ENTERPRISE"];
-
-const PLAN_LABEL: Record<SubscriptionPlan, string> = {
-  FREE: "Free",
-  PRO: "Pro",
-  ENTERPRISE: "Enterprise",
-};
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -26,7 +18,8 @@ function formatDate(value: string | null) {
 
 export function SubscriptionCard() {
   const { data, isPending } = useMySubscription();
-  const updateMutation = useUpdateSubscription();
+  const checkoutMutation = useCreateCheckout();
+  const downgradeMutation = useUpdateSubscription();
   const cancelMutation = useCancelSubscription();
   const [pendingPlan, setPendingPlan] = useState<SubscriptionPlan | null>(null);
 
@@ -42,17 +35,30 @@ export function SubscriptionCard() {
   }
 
   const subscription = data?.data;
-  const currentPlan = subscription && "plan" in subscription ? subscription.plan : "FREE";
+  const currentPlan: SubscriptionPlan = subscription && "plan" in subscription ? subscription.plan : "FREE";
   const isCancelled = subscription && "status" in subscription && subscription.status === "CANCELLED";
 
-  async function handleChangePlan(plan: SubscriptionPlan) {
+  async function handlePlanClick(plan: SubscriptionPlan) {
+    if (plan === "FREE") {
+      if (!window.confirm("Downgrade to Free? You'll lose access to paid-plan features immediately.")) return;
+      setPendingPlan("FREE");
+      try {
+        await downgradeMutation.mutateAsync("FREE");
+        notify.success("Switched to Free");
+      } catch (error) {
+        notify.error("Couldn't downgrade", isApiError(error) ? error.message : undefined);
+      } finally {
+        setPendingPlan(null);
+      }
+      return;
+    }
+
     setPendingPlan(plan);
     try {
-      await updateMutation.mutateAsync(plan);
-      notify.success(`Switched to ${PLAN_LABEL[plan]}`);
+      const res = await checkoutMutation.mutateAsync({ plan });
+      window.location.href = res.data.checkoutUrl; // hand off to Stripe Checkout
     } catch (error) {
-      notify.error("Couldn't update plan", isApiError(error) ? error.message : undefined);
-    } finally {
+      notify.error("Couldn't start checkout", isApiError(error) ? error.message : undefined);
       setPendingPlan(null);
     }
   }
@@ -84,7 +90,9 @@ export function SubscriptionCard() {
               </p>
             ) : null}
           </div>
-          {isCancelled ? <span className="status-danger rounded-full border px-2.5 py-1 text-xs font-medium">Cancelled</span> : null}
+          {isCancelled ? (
+            <span className="status-danger rounded-full border px-2.5 py-1 text-xs font-medium">Cancelled</span>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -95,9 +103,10 @@ export function SubscriptionCard() {
               variant={plan === currentPlan ? "default" : "outline"}
               disabled={plan === currentPlan}
               isLoading={pendingPlan === plan}
-              onClick={() => handleChangePlan(plan)}
+              onClick={() => handlePlanClick(plan)}
             >
               {PLAN_LABEL[plan]}
+              {plan !== "FREE" ? <span className="ml-1 text-[10px] opacity-70">{PLAN_PRICE_DISPLAY[plan]}</span> : null}
             </Button>
           ))}
         </div>
