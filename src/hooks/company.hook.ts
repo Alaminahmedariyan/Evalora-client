@@ -2,13 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   cancelMySubscription,
+  deleteCompany,
+  getAllCompanies,
   getMyCompany,
   getMySubscription,
   registerCompany,
   updateMyCompany,
   updateMySubscription,
+  verifyCompany,
 } from "@/api";
 import { isApiError } from "@/lib/apiClient";
+import { CompanyListParams } from "@/types";
 
 export function useMyCompany() {
   return useQuery({
@@ -73,6 +77,36 @@ export function useCancelSubscription() {
     mutationFn: cancelMySubscription,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["company", "subscription"] });
+    },
+  });
+}
+
+export function useCompanies(params: CompanyListParams) {
+  return useQuery({
+    queryKey: ["companies", params],
+    queryFn: () => getAllCompanies(params),
+  });
+}
+
+export function useVerifyCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: verifyCompany,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["companies"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard-stats"] });
+    },
+  });
+}
+
+export function useDeleteCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteCompany,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["companies"] });
+      void queryClient.invalidateQueries({ queryKey: ["users"] }); // owner gets demoted to CANDIDATE
+      void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard-stats"] });
     },
   });
 }

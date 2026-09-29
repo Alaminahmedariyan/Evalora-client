@@ -7,3 +7,4 @@ export * from "./invitation.api";
 export * from "./attempt.api";
 export * from "./result.api";
 export * from "./evaluation.api";
+export * from "./user.api";

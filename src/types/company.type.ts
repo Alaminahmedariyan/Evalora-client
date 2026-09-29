@@ -47,3 +47,23 @@ export interface UpdateCompanyPayload {
   industry?: string;
   logo?: File;
 }
+
+// Matches COMPANY_LIST_SELECT — deliberately no ownerId/updatedAt.
+export interface CompanyListItem {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  website: string | null;
+  industry: string | null;
+  logo: string | null;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+export interface CompanyListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  isVerified?: boolean;
+}

@@ -2,6 +2,8 @@ import apiClient from "@/lib/apiClient";
 import type {
   ApiResponse,
   Company,
+  CompanyListItem,
+  CompanyListParams,
   RegisterCompanyPayload,
   Subscription,
   SubscriptionPlan,
@@ -47,4 +49,16 @@ export function cancelMySubscription() {
   return apiClient<ApiResponse<Subscription>>("/companies/me/subscription/cancel", {
     method: "POST",
   });
+}
+
+export function getAllCompanies(params: CompanyListParams) {
+  return apiClient<ApiResponse<CompanyListItem[]>>("/companies", { params });
+}
+
+export function verifyCompany(id: string) {
+  return apiClient<ApiResponse<Company>>(`/companies/${id}/verify`, { method: "PATCH" });
+}
+
+export function deleteCompany(id: string) {
+  return apiClient<ApiResponse<null>>(`/companies/${id}`, { method: "DELETE" });
 }
