@@ -9,6 +9,8 @@ const AUTH_ONLY_PATHS = [
   "/two-factor",
 ];
 
+const PROTECTED_NO_ROLE_PATHS = ["/billing"];
+
 const ROLE_BY_PREFIX: Record<string, "ADMIN" | "RECRUITER" | "CANDIDATE"> = {
   "/admin": "ADMIN",
   "/recruiter": "RECRUITER",
@@ -33,7 +35,8 @@ export async function middleware(request: NextRequest) {
   // anonymous visitor shouldn't cost an extra network round trip per nav.
   if (hasSessionCookie) {
     try {
-      const authBaseUrl = process.env.NEXT_PUBLIC_AUTH_BASE_URL ?? "http://localhost:5000";
+      const authBaseUrl =
+        process.env.NEXT_PUBLIC_AUTH_BASE_URL ?? "http://localhost:5000";
       const res = await fetch(`${authBaseUrl}/api/v1/auth/me`, {
         headers: { cookie: cookieHeader },
       });
@@ -49,9 +52,17 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = Boolean(role);
 
   // Logged-in user hitting "/" or any auth-only page → send to their own dashboard
-if (isLoggedIn && AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))) {
-  return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
-}
+  if (isLoggedIn && AUTH_ONLY_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
+  }
+
+  // Protected paths that require authentication regardless of role (e.g. /billing)
+  if (
+    PROTECTED_NO_ROLE_PATHS.some((p) => pathname.startsWith(p)) &&
+    !isLoggedIn
+  ) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   // Anonymous or wrong-role user hitting a role-scoped dashboard path
   const matchedPrefix = Object.keys(ROLE_BY_PREFIX).find(
@@ -78,6 +89,8 @@ export const config = {
     "/reset-password",
     "/verify-email",
     "/two-factor",
+    "/billing",
+    "/billing/:path*",
     "/admin",
     "/admin/:path*",
     "/recruiter",
