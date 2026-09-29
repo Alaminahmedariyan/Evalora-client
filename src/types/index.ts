@@ -10,3 +10,4 @@ export * from "./attempt.type";
 export * from "./result.type";
 export * from "./evaluation.type";
 export * from "./payment.type";
+export * from "./notification.type";

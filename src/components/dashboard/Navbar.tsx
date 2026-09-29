@@ -8,6 +8,7 @@ import { useGetMe, useLogout } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { Avatar, AvatarFallback, AvatarImage, initialsFromName } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "../module/notification";
 
 export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data } = useGetMe();
@@ -61,6 +62,7 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
             aria-expanded={menuOpen}
             aria-haspopup="menu"
           >
+            {user ? <NotificationBell /> : null}
             <Avatar>
               <AvatarImage src={user.image ?? undefined} alt={user.name} />
               <AvatarFallback>{initialsFromName(user.name)}</AvatarFallback>

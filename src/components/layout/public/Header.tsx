@@ -11,6 +11,7 @@ import { notify } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage, initialsFromName } from "@/components/ui/avatar";
 import Logo from "@/assets/svg/logo";
+import { NotificationBell } from "@/components/module/notification";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -91,6 +92,7 @@ export function Header() {
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
               >
+                {user ? <NotificationBell /> : null}
                 <Avatar>
                   <AvatarImage src={user.image ?? undefined} alt={user.name} />
                   <AvatarFallback>{initialsFromName(user.name)}</AvatarFallback>
