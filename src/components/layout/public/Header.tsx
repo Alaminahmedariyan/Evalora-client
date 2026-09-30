@@ -9,7 +9,12 @@ import { cn } from "@/lib/utils";
 import { useGetMe, useLogout } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage, initialsFromName } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  initialsFromName,
+} from "@/components/ui/avatar";
 import Logo from "@/assets/svg/logo";
 import { NotificationBell } from "@/components/module/notification";
 
@@ -29,12 +34,15 @@ function dashboardPathFor(role?: string) {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data } = useGetMe();
   const logoutMutation = useLogout();
+
   const user = data?.data;
 
   useEffect(() => {
@@ -43,15 +51,22 @@ export function Header() {
         setMenuOpen(false);
       }
     }
+
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+    };
   }, []);
 
   async function handleLogout() {
     try {
       await logoutMutation.mutateAsync();
+
       notify.success("Logged out");
+
       setMenuOpen(false);
+
       router.push("/");
       router.refresh();
     } catch {
@@ -62,19 +77,31 @@ export function Header() {
   return (
     <header className="glass-header sticky top-0 z-40">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+        <Link
+          href="/"
+          className="flex items-center gap-2"
+          onClick={() => setMobileOpen(false)}
+        >
           <Logo />
-          <span className="text-sm font-semibold tracking-tight text-foreground">Evalora</span>
+          <span className="text-sm font-semibold tracking-tight text-foreground">
+            Evalora
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
           {navLinks.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const active =
+              pathname === link.href ||
+              pathname.startsWith(`${link.href}/`);
+
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn("interactive hover:text-foreground", active && "font-medium text-foreground")}
+                className={cn(
+                  "interactive hover:text-foreground",
+                  active && "font-medium text-foreground",
+                )}
               >
                 {link.label}
               </Link>
@@ -84,60 +111,82 @@ export function Header() {
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
           {user ? (
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((v) => !v)}
-                className="interactive flex items-center gap-2 rounded-full p-1 hover:bg-accent"
-                aria-expanded={menuOpen}
-                aria-haspopup="menu"
-              >
-                {user ? <NotificationBell /> : null}
-                <Avatar>
-                  <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                  <AvatarFallback>{initialsFromName(user.name)}</AvatarFallback>
-                </Avatar>
-              </button>
+            <>
+              <NotificationBell />
 
-              <div
-                role="menu"
-                className={cn(
-                  "surface-elevated absolute right-0 top-12 w-56 origin-top-right rounded-lg p-1 transition",
-                  menuOpen
-                    ? "pointer-events-auto scale-100 opacity-100"
-                    : "pointer-events-none scale-95 opacity-0",
-                )}
-              >
-                <div className="border-b border-border px-3 py-2">
-                  <p className="truncate text-sm font-medium">{user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                </div>
-                <Link
-                  href={dashboardPathFor(user.role)}
-                  onClick={() => setMenuOpen(false)}
-                  role="menuitem"
-                  className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
-                >
-                  <LayoutDashboard className="size-4" aria-hidden="true" />
-                  Dashboard
-                </Link>
+              <div className="relative" ref={menuRef}>
                 <button
                   type="button"
-                  role="menuitem"
-                  onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
-                  className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:opacity-60"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="interactive flex items-center gap-2 rounded-full p-1 hover:bg-accent"
+                  aria-expanded={menuOpen}
+                  aria-haspopup="menu"
                 >
-                  <LogOut className="size-4" aria-hidden="true" />
-                  {logoutMutation.isPending ? "Logging out..." : "Log out"}
+                  <Avatar>
+                    <AvatarImage
+                      src={user.image ?? undefined}
+                      alt={user.name}
+                    />
+                    <AvatarFallback>
+                      {initialsFromName(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
                 </button>
+
+                <div
+                  role="menu"
+                  className={cn(
+                    "surface-elevated absolute right-0 top-12 w-56 origin-top-right rounded-lg p-1 transition",
+                    menuOpen
+                      ? "pointer-events-auto scale-100 opacity-100"
+                      : "pointer-events-none scale-95 opacity-0",
+                  )}
+                >
+                  <div className="border-b border-border px-3 py-2">
+                    <p className="truncate text-sm font-medium">
+                      {user.name}
+                    </p>
+
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <Link
+                    href={dashboardPathFor(user.role)}
+                    onClick={() => setMenuOpen(false)}
+                    role="menuitem"
+                    className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
+                  >
+                    <LayoutDashboard
+                      className="size-4"
+                      aria-hidden="true"
+                    />
+                    Dashboard
+                  </Link>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                    className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:opacity-60"
+                  >
+                    <LogOut className="size-4" aria-hidden="true" />
+
+                    {logoutMutation.isPending
+                      ? "Logging out..."
+                      : "Log out"}
+                  </button>
+                </div>
               </div>
-            </div>
+            </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
                 <Link href="/login">Log in</Link>
               </Button>
+
               <Button asChild size="sm">
                 <Link href="/register">Get started</Link>
               </Button>
@@ -152,7 +201,11 @@ export function Header() {
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
         >
-          {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          {mobileOpen ? (
+            <X className="size-5" />
+          ) : (
+            <Menu className="size-5" />
+          )}
         </button>
       </div>
 
@@ -169,12 +222,20 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
               {user ? (
                 <>
-                  <Button asChild variant="outline" onClick={() => setMobileOpen(false)}>
-                    <Link href={dashboardPathFor(user.role)}>Dashboard</Link>
+                  <Button
+                    asChild
+                    variant="outline"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Link href={dashboardPathFor(user.role)}>
+                      Dashboard
+                    </Link>
                   </Button>
+
                   <Button
                     variant="destructive"
                     isLoading={logoutMutation.isPending}
@@ -188,10 +249,18 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <Button asChild variant="ghost" onClick={() => setMobileOpen(false)}>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     <Link href="/login">Log in</Link>
                   </Button>
-                  <Button asChild onClick={() => setMobileOpen(false)}>
+
+                  <Button
+                    asChild
+                    onClick={() => setMobileOpen(false)}
+                  >
                     <Link href="/register">Get started</Link>
                   </Button>
                 </>
