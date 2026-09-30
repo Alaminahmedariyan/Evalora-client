@@ -23,7 +23,9 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
         setMenuOpen(false);
       }
     }
+
     document.addEventListener("mousedown", onClickOutside);
+
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
@@ -54,44 +56,48 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
       <div className="flex-1" />
 
       {user ? (
-        <div className="relative" ref={menuRef}>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            className="interactive flex items-center gap-2 rounded-full p-1 hover:bg-accent"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-          >
-            {user ? <NotificationBell /> : null}
-            <Avatar>
-              <AvatarImage src={user.image ?? undefined} alt={user.name} />
-              <AvatarFallback>{initialsFromName(user.name)}</AvatarFallback>
-            </Avatar>
-          </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
 
-          <div
-            role="menu"
-            className={cn(
-              "surface-elevated absolute right-0 top-12 w-56 origin-top-right rounded-lg p-1 transition",
-              menuOpen
-                ? "pointer-events-auto scale-100 opacity-100"
-                : "pointer-events-none scale-95 opacity-0",
-            )}
-          >
-            <div className="border-b border-border px-3 py-2">
-              <p className="truncate text-sm font-medium">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-            </div>
+          <div className="relative" ref={menuRef}>
             <button
               type="button"
-              role="menuitem"
-              onClick={handleLogout}
-              disabled={logoutMutation.isPending}
-              className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:opacity-60"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="interactive flex items-center gap-2 rounded-full p-1 hover:bg-accent"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
             >
-              <LogOut className="size-4" aria-hidden="true" />
-              {logoutMutation.isPending ? "Logging out..." : "Log out"}
+              <Avatar>
+                <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                <AvatarFallback>{initialsFromName(user.name)}</AvatarFallback>
+              </Avatar>
             </button>
+
+            <div
+              role="menu"
+              className={cn(
+                "surface-elevated absolute right-0 top-12 w-56 origin-top-right rounded-lg p-1 transition",
+                menuOpen
+                  ? "pointer-events-auto scale-100 opacity-100"
+                  : "pointer-events-none scale-95 opacity-0",
+              )}
+            >
+              <div className="border-b border-border px-3 py-2">
+                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              </div>
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:opacity-60"
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                {logoutMutation.isPending ? "Logging out..." : "Log out"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
