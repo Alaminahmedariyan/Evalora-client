@@ -10,3 +10,5 @@ export * from "./evaluation.api";
 export * from "./user.api";
 export * from "./payment.api";
 export * from "./notification.api";
+export * from "./candidate.api";
+export * from "./consent.api";

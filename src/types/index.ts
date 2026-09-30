@@ -11,3 +11,5 @@ export * from "./result.type";
 export * from "./evaluation.type";
 export * from "./payment.type";
 export * from "./notification.type";
+export * from "./candidate.type";
+export * from "./consent.type";

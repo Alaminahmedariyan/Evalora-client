@@ -1,16 +1,19 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 
-import { useMarkAllAsRead, useMarkAsRead, useMyNotifications, useUnreadCount } from "@/hooks";
+import {
+  useDeleteNotification,
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useMyNotifications,
+  useUnreadCount,
+} from "@/hooks";
 import { isApiError } from "@/lib/apiClient";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { NotificationItem } from "./NotificationItem";
-import { useDeleteNotification } from "@/hooks";
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);

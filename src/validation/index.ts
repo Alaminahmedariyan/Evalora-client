@@ -5,3 +5,5 @@ export * from "./assessment.validation";
 export * from "./invitation.validation";
 export * from "./attempt.validation";
 export * from "./evaluation.validation";
+export * from "./candidate.validation";
+export * from "./consent.validation";

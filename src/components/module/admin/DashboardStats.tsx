@@ -5,8 +5,8 @@ import { Building2, ClipboardList, Code2, ListChecks, Users, Wallet } from "luci
 import { useDashboardStats } from "@/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatCard } from "./StatCard";
-import { BreakdownBadges } from "./BreakdoenBadges";
+import { StatCard } from "@/components/dashboard";
+import { BreakdownBadges } from "./BreakdownBadges";
 
 const SKELETON_KEYS = ["sk-users", "sk-companies", "sk-problems", "sk-assessments", "sk-attempts", "sk-revenue"];
 

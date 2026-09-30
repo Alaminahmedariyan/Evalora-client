@@ -10,3 +10,5 @@ export * from "./evaluation.hook";
 export * from "./debounce.hook";
 export * from "./payment.hook";
 export * from "./notification.hook";
+export * from "./candidate.hook";
+export * from "./consent.hook";
