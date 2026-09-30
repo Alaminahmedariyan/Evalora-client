@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, Pencil, Repeat } from "lucide-react";
+import { Calendar, Clock, Eye, Pencil, Repeat } from "lucide-react";
 
 import type { AssessmentDetail } from "@/types";
 import { useCloseAssessment, useCreateAssessmentVersion, useDeleteAssessment, usePublishAssessment } from "@/hooks";
@@ -19,6 +19,7 @@ import { InvitationList } from "@/components/module/invitation";
 import { Leaderboard } from "@/components/module/result";
 import { PendingQueue } from "@/components/module/evaluation";
 import { InviteCandidatesForm, EditAssessmentForm } from "@/components/form";
+import Link from "next/link";
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -87,6 +88,12 @@ export function AssessmentDetailView({ assessment }: { assessment: AssessmentDet
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline">
+  <Link href={`/recruiter/assessments/${assessment.id}/preview`}>
+    <Eye className="size-3.5" aria-hidden="true" />
+    Preview
+  </Link>
+</Button>
         <AssessmentStatusBadge status={assessment.status} />
         {assessment.version > 1 ? (
           <span className="status-neutral rounded-full border px-2.5 py-1 text-xs font-medium">v{assessment.version}</span>
