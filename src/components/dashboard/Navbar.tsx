@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, Settings } from "lucide-react";
 
 import { useGetMe, useLogout } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { Avatar, AvatarFallback, AvatarImage, initialsFromName } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "../module/notification";
+import Link from "next/link";
 
 export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data } = useGetMe();
@@ -77,15 +78,22 @@ export function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
               role="menu"
               className={cn(
                 "surface-elevated absolute right-0 top-12 w-56 origin-top-right rounded-lg p-1 transition",
-                menuOpen
-                  ? "pointer-events-auto scale-100 opacity-100"
-                  : "pointer-events-none scale-95 opacity-0",
+                menuOpen ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0",
               )}
             >
               <div className="border-b border-border px-3 py-2">
                 <p className="truncate text-sm font-medium">{user.name}</p>
                 <p className="truncate text-xs text-muted-foreground">{user.email}</p>
               </div>
+
+              <Link
+                href="/settings"
+                role="menuitem"
+                className="interactive flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
+              >
+                <Settings className="size-4" aria-hidden="true" />
+                Account settings
+              </Link>
 
               <button
                 type="button"

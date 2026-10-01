@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ResultStatusBadge } from "./ResultStatusBadge";
 
-export function Leaderboard({ assessmentId }: { assessmentId: string }) {
+export function LeaderBoard({ assessmentId }: { assessmentId: string }) {
   const { data, isPending, isError } = useResultsForAssessment(assessmentId);
   const computeMutation = useComputeRanks(assessmentId);
 

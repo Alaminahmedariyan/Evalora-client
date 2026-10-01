@@ -9,7 +9,7 @@ const AUTH_ONLY_PATHS = [
   "/two-factor",
 ];
 
-const PROTECTED_NO_ROLE_PATHS = ["/billing"];
+const PROTECTED_NO_ROLE_PATHS = ["/billing", "/settings"];
 
 const ROLE_BY_PREFIX: Record<string, "ADMIN" | "RECRUITER" | "CANDIDATE"> = {
   "/admin": "ADMIN",

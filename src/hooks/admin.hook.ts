@@ -4,8 +4,9 @@ import {
   deleteUser,
   updateUserRole,
   updateUserStatus,
+  getAuditLogs,
 } from "@/api";
-import type { UserListParams, UserRole, UserStatus } from "@/types";
+import type { AuditLogListParams, UserListParams, UserRole, UserStatus } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useDashboardStats() {
@@ -60,5 +61,12 @@ export function useDeleteUser() {
         queryKey: ["admin", "users"],
       });
     },
+  });
+}
+
+export function useAuditLogs(params: AuditLogListParams) {
+  return useQuery({
+    queryKey: ["admin", "audit-logs", params],
+    queryFn: () => getAuditLogs(params),
   });
 }
