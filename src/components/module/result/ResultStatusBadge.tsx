@@ -8,7 +8,9 @@ const CLASS_MAP: Record<ResultStatus, string> = {
 
 export function ResultStatusBadge({ status }: { status: ResultStatus }) {
   return (
-    <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${CLASS_MAP[status]}`}>
+    <span
+      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${CLASS_MAP[status]}`}
+    >
       {status.charAt(0) + status.slice(1).toLowerCase()}
     </span>
   );

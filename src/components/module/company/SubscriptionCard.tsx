@@ -3,17 +3,38 @@
 import { useState } from "react";
 import { Gauge } from "lucide-react";
 
-import { useCancelSubscription, useCreateCheckout, useMySubscription, useUpdateSubscription } from "@/hooks";
+import {
+  useCancelSubscription,
+  useCreateCheckout,
+  useMySubscription,
+  useUpdateSubscription,
+} from "@/hooks";
 import { notify } from "@/lib/toast";
 import { isApiError } from "@/lib/apiClient";
-import { PLAN_LABEL, PLAN_ORDER, PLAN_PRICE_DISPLAY, type SubscriptionPlan } from "@/constants/plans";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { newIdempotencyKey } from "@/lib/idempotency";
+import {
+  PLAN_LABEL,
+  PLAN_ORDER,
+  PLAN_PRICE_DISPLAY,
+  type SubscriptionPlan,
+} from "@/constants/plans";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function formatDate(value: string | null) {
   if (!value) return null;
-  return new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 export function SubscriptionCard() {
@@ -21,7 +42,9 @@ export function SubscriptionCard() {
   const checkoutMutation = useCreateCheckout();
   const downgradeMutation = useUpdateSubscription();
   const cancelMutation = useCancelSubscription();
-  const [pendingPlan, setPendingPlan] = useState<SubscriptionPlan | null>(null);
+
+  const [pendingPlan, setPendingPlan] =
+    useState<SubscriptionPlan | null>(null);
 
   if (isPending) {
     return (
@@ -35,30 +58,58 @@ export function SubscriptionCard() {
   }
 
   const subscription = data?.data;
-  const currentPlan: SubscriptionPlan = subscription && "plan" in subscription ? subscription.plan : "FREE";
-  const isCancelled = subscription && "status" in subscription && subscription.status === "CANCELLED";
+
+  const currentPlan: SubscriptionPlan =
+    subscription && "plan" in subscription
+      ? subscription.plan
+      : "FREE";
+
+  const isCancelled =
+    subscription &&
+    "status" in subscription &&
+    subscription.status === "CANCELLED";
 
   async function handlePlanClick(plan: SubscriptionPlan) {
     if (plan === "FREE") {
-      if (!window.confirm("Downgrade to Free? You'll lose access to paid-plan features immediately.")) return;
+      if (
+        !window.confirm(
+          "Downgrade to Free? You'll lose access to paid-plan features immediately.",
+        )
+      ) {
+        return;
+      }
+
       setPendingPlan("FREE");
+
       try {
         await downgradeMutation.mutateAsync("FREE");
         notify.success("Switched to Free");
       } catch (error) {
-        notify.error("Couldn't downgrade", isApiError(error) ? error.message : undefined);
+        notify.error(
+          "Couldn't downgrade",
+          isApiError(error) ? error.message : undefined,
+        );
       } finally {
         setPendingPlan(null);
       }
+
       return;
     }
 
     setPendingPlan(plan);
+
     try {
-      const res = await checkoutMutation.mutateAsync({ plan });
-      window.location.href = res.data.checkoutUrl; // hand off to Stripe Checkout
+      const res = await checkoutMutation.mutateAsync({
+        payload: { plan },
+        idempotencyKey: newIdempotencyKey(),
+      });
+
+      window.location.href = res.data.checkoutUrl;
     } catch (error) {
-      notify.error("Couldn't start checkout", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't start checkout",
+        isApiError(error) ? error.message : undefined,
+      );
       setPendingPlan(null);
     }
   }
@@ -66,9 +117,16 @@ export function SubscriptionCard() {
   async function handleCancel() {
     try {
       await cancelMutation.mutateAsync();
-      notify.success("Subscription cancelled", "It stays active until the end of the current period.");
+
+      notify.success(
+        "Subscription cancelled",
+        "It stays active until the end of the current period.",
+      );
     } catch (error) {
-      notify.error("Couldn't cancel subscription", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't cancel subscription",
+        isApiError(error) ? error.message : undefined,
+      );
     }
   }
 
@@ -76,22 +134,35 @@ export function SubscriptionCard() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Gauge className="size-4 text-primary" aria-hidden="true" />
+          <Gauge
+            className="size-4 text-primary"
+            aria-hidden="true"
+          />
           Subscription
         </CardTitle>
       </CardHeader>
+
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="stat-number text-2xl font-semibold">{PLAN_LABEL[currentPlan]}</p>
-            {subscription && "currentPeriodEnd" in subscription && subscription.currentPeriodEnd ? (
+            <p className="stat-number text-2xl font-semibold">
+              {PLAN_LABEL[currentPlan]}
+            </p>
+
+            {subscription &&
+            "currentPeriodEnd" in subscription &&
+            subscription.currentPeriodEnd ? (
               <p className="text-xs text-muted-foreground">
-                {isCancelled ? "Ends" : "Renews"} on {formatDate(subscription.currentPeriodEnd)}
+                {isCancelled ? "Ends" : "Renews"} on{" "}
+                {formatDate(subscription.currentPeriodEnd)}
               </p>
             ) : null}
           </div>
+
           {isCancelled ? (
-            <span className="status-danger rounded-full border px-2.5 py-1 text-xs font-medium">Cancelled</span>
+            <span className="status-danger rounded-full border px-2.5 py-1 text-xs font-medium">
+              Cancelled
+            </span>
           ) : null}
         </div>
 
@@ -100,19 +171,32 @@ export function SubscriptionCard() {
             <Button
               key={plan}
               size="sm"
-              variant={plan === currentPlan ? "default" : "outline"}
+              variant={
+                plan === currentPlan ? "default" : "outline"
+              }
               disabled={plan === currentPlan}
               isLoading={pendingPlan === plan}
               onClick={() => handlePlanClick(plan)}
             >
               {PLAN_LABEL[plan]}
-              {plan !== "FREE" ? <span className="ml-1 text-[10px] opacity-70">{PLAN_PRICE_DISPLAY[plan]}</span> : null}
+
+              {plan !== "FREE" ? (
+                <span className="ml-1 text-[10px] opacity-70">
+                  {PLAN_PRICE_DISPLAY[plan]}
+                </span>
+              ) : null}
             </Button>
           ))}
         </div>
 
         {currentPlan !== "FREE" && !isCancelled ? (
-          <Button variant="destructive" size="sm" onClick={handleCancel} isLoading={cancelMutation.isPending} className="self-start">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleCancel}
+            isLoading={cancelMutation.isPending}
+            className="self-start"
+          >
             Cancel subscription
           </Button>
         ) : null}

@@ -35,6 +35,7 @@ export const navByRole: Record<UserRole, NavItem[]> = {
     { label: "Dashboard", href: "/recruiter", icon: LayoutDashboard },
     { label: "Company", href: "/recruiter/company", icon: Building2 },
     { label: "Problems", href: "/recruiter/problems", icon: FileText },
+    { label: "Candidates", href: "/recruiter/candidates", icon: Users },
     { label: "Assessments", href: "/recruiter/assessments", icon: ClipboardList },
     { label: "Evaluations", href: "/recruiter/evaluations", icon: ListChecks },
     { label: "Subscription", href: "/recruiter/subscription", icon: Gauge },

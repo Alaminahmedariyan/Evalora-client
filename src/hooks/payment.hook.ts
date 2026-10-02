@@ -1,10 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { createCheckoutSession, getAllPayments, getMyPayments, getPaymentById } from "@/api";
-import type { PaymentListParams } from "@/types";
+import type { CreateCheckoutPayload, PaymentListParams } from "@/types";
 
 export function useCreateCheckout() {
-  return useMutation({ mutationFn: createCheckoutSession });
+  return useMutation({
+    mutationFn: ({ payload, idempotencyKey }: { payload: CreateCheckoutPayload; idempotencyKey: string }) =>
+      createCheckoutSession(payload, idempotencyKey),
+  });
 }
 
 export function useMyPayments(params: PaymentListParams) {

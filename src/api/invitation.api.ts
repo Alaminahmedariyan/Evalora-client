@@ -7,14 +7,11 @@ import type {
   InviteCandidatesResult,
 } from "@/types";
 
-export function inviteCandidates(assessmentId: string, payload: InviteCandidatesPayload) {
+export function inviteCandidates(assessmentId: string, payload: InviteCandidatesPayload, idempotencyKey: string) {
   return apiClient<ApiResponse<InviteCandidatesResult>>(`/invitations/assessments/${assessmentId}`, {
     method: "POST",
     body: payload,
-    // Required by the backend's idempotency() middleware on this route —
-    // a fresh key per call means "retry this exact request safely," not
-    // "dedupe across different invite batches."
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 

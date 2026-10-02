@@ -7,11 +7,11 @@ import type {
   PaymentListParams,
 } from "@/types";
 
-export function createCheckoutSession(payload: CreateCheckoutPayload) {
+export function createCheckoutSession(payload: CreateCheckoutPayload, idempotencyKey: string) {
   return apiClient<ApiResponse<CheckoutSessionResult>>("/payments/checkout", {
     method: "POST",
     body: payload,
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 

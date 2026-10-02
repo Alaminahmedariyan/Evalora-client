@@ -28,7 +28,8 @@ export function useMyInvitations() {
 export function useInviteCandidates(assessmentId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: InviteCandidatesPayload) => inviteCandidates(assessmentId, payload),
+    mutationFn: ({ payload, idempotencyKey }: { payload: InviteCandidatesPayload; idempotencyKey: string }) =>
+      inviteCandidates(assessmentId, payload, idempotencyKey),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["invitations", "assessment", assessmentId] });
     },

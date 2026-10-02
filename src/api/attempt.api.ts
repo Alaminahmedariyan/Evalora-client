@@ -8,11 +8,11 @@ import type {
   SaveSubmissionPayload,
 } from "@/types";
 
-export function startAttempt(assessmentId: string) {
+export function startAttempt(assessmentId: string, idempotencyKey: string) {
   return apiClient<ApiResponse<AttemptDetail>>("/attempts/start", {
     method: "POST",
     body: { assessmentId },
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 
@@ -24,18 +24,18 @@ export function getAttemptById(id: string) {
   return apiClient<ApiResponse<AttemptDetail>>(`/attempts/${id}`);
 }
 
-export function saveSubmission(attemptId: string, problemId: string, payload: SaveSubmissionPayload) {
+export function saveSubmission(attemptId: string, problemId: string, payload: SaveSubmissionPayload, idempotencyKey: string) {
   return apiClient<ApiResponse<AttemptSubmission>>(`/attempts/${attemptId}/submissions/${problemId}`, {
     method: "PUT",
     body: payload,
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 
-export function submitAttempt(attemptId: string) {
+export function submitAttempt(attemptId: string, idempotencyKey: string) {
   return apiClient<ApiResponse<AttemptDetail>>(`/attempts/${attemptId}/submit`, {
     method: "POST",
-    headers: { "Idempotency-Key": crypto.randomUUID() },
+    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 

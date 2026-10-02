@@ -1,10 +1,9 @@
 "use client";
 
 import { Award, Percent } from "lucide-react";
-
-import { useResultByAttempt } from "@/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useResultByAttempt } from "@/hooks";
 import { ResultStatusBadge } from "./ResultStatusBadge";
 
 export function ResultCard({ attemptId }: { attemptId: string }) {
@@ -17,7 +16,8 @@ export function ResultCard({ attemptId }: { attemptId: string }) {
   if (isError || !data?.data) {
     return (
       <div className="status-pending rounded-md border px-4 py-3 text-sm">
-        Your result isn&apos;t available yet — it will appear here once grading is complete.
+        Your result isn&apos;t available yet — it will appear here once grading
+        is complete.
       </div>
     );
   }
@@ -41,7 +41,9 @@ export function ResultCard({ attemptId }: { attemptId: string }) {
           <div>
             <p className="stat-number text-4xl font-semibold">
               {result.totalScore}
-              <span className="text-lg text-muted-foreground">/{result.totalMarks}</span>
+              <span className="text-lg text-muted-foreground">
+                /{result.totalMarks}
+              </span>
             </p>
             <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               <Percent className="size-3.5" aria-hidden="true" />

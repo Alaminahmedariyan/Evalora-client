@@ -18,12 +18,21 @@ export function ChangePasswordForm() {
   const [show, setShow] = useState(false);
 
   const form = useForm({
-    defaultValues: { currentPassword: "", newPassword: "", confirmNewPassword: "" },
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    },
     onSubmit: async ({ value, formApi }) => {
       setFormError(null);
 
       const parsed = changePasswordFields.safeParse(value);
+
       if (!parsed.success) {
+        setFormError(
+          parsed.error.issues[0]?.message ??
+            "Please check the form for errors.",
+        );
         void formApi.validateAllFields("submit");
         return;
       }
@@ -33,10 +42,14 @@ export function ChangePasswordForm() {
           currentPassword: value.currentPassword,
           newPassword: value.newPassword,
         });
+
         notify.success("Password changed");
         formApi.reset();
       } catch (error) {
-        const message = isApiError(error) ? error.message : "Couldn't change your password.";
+        const message = isApiError(error)
+          ? error.message
+          : "Couldn't change your password.";
+
         setFormError(message);
         notify.error("Change failed", message);
       }
@@ -54,7 +67,10 @@ export function ChangePasswordForm() {
       noValidate
     >
       {formError ? (
-        <div role="alert" className="status-danger rounded-md border px-3 py-2 text-sm">
+        <div
+          role="alert"
+          className="status-danger rounded-md border px-3 py-2 text-sm"
+        >
           {formError}
         </div>
       ) : null}
@@ -68,29 +84,37 @@ export function ChangePasswordForm() {
               type={show ? "text" : "password"}
               autoComplete="current-password"
               value={field.state.value}
+              onBlur={field.handleBlur}
               onChange={(e) => field.handleChange(e.target.value)}
             />
           </div>
         )}
       </form.Field>
 
-      <form.Field
-        name="newPassword"
-        validators={{
-          onBlur: ({ value }) => changePasswordFields._def.schema.shape.newPassword.safeParse(value).error?.issues[0]?.message,
-        }}
-      >
+      <form.Field name="newPassword">
         {(field) => {
           const hasError = field.state.meta.errors.length > 0;
+
           return (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor={field.name}>New password</Label>
-                <button type="button" onClick={() => setShow((v) => !v)} className="interactive flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                  {show ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+
+                <button
+                  type="button"
+                  onClick={() => setShow((value) => !value)}
+                  className="interactive flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  aria-label={show ? "Hide password" : "Show password"}
+                >
+                  {show ? (
+                    <EyeOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-3.5" aria-hidden="true" />
+                  )}
                   {show ? "Hide" : "Show"}
                 </button>
               </div>
+
               <Input
                 id={field.name}
                 type={show ? "text" : "password"}
@@ -101,30 +125,52 @@ export function ChangePasswordForm() {
                 aria-invalid={hasError}
                 placeholder="At least 8 characters"
               />
-              {hasError ? <p className="text-xs text-danger">{String(field.state.meta.errors[0])}</p> : null}
+
+              {hasError ? (
+                <p className="text-xs text-danger">
+                  {String(field.state.meta.errors[0])}
+                </p>
+              ) : null}
             </div>
           );
         }}
       </form.Field>
 
       <form.Field name="confirmNewPassword">
-        {(field) => (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>Confirm new password</Label>
-            <Input
-              id={field.name}
-              type={show ? "text" : "password"}
-              autoComplete="new-password"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
-          </div>
-        )}
+        {(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+
+          return (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={field.name}>Confirm new password</Label>
+
+              <Input
+                id={field.name}
+                type={show ? "text" : "password"}
+                autoComplete="new-password"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={hasError}
+              />
+
+              {hasError ? (
+                <p className="text-xs text-danger">
+                  {String(field.state.meta.errors[0])}
+                </p>
+              ) : null}
+            </div>
+          );
+        }}
       </form.Field>
 
       <form.Subscribe selector={(state) => state.isSubmitting}>
         {(isSubmitting) => (
-          <Button type="submit" isLoading={isSubmitting} className="self-start">
+          <Button
+            type="submit"
+            isLoading={isSubmitting}
+            className="self-start"
+          >
             Change password
           </Button>
         )}

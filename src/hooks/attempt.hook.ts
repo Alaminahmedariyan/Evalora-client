@@ -25,20 +25,30 @@ export function useAttempt(id: string, options?: { refetchInterval?: number }) {
 }
 
 export function useStartAttempt() {
-  return useMutation({ mutationFn: startAttempt });
+  return useMutation({
+    mutationFn: ({ assessmentId, idempotencyKey }: { assessmentId: string; idempotencyKey: string }) =>
+      startAttempt(assessmentId, idempotencyKey),
+  });
 }
 
 export function useSaveSubmission(attemptId: string) {
   return useMutation({
-    mutationFn: ({ problemId, payload }: { problemId: string; payload: SaveSubmissionPayload }) =>
-      saveSubmission(attemptId, problemId, payload),
+    mutationFn: ({
+      problemId,
+      payload,
+      idempotencyKey,
+    }: {
+      problemId: string;
+      payload: SaveSubmissionPayload;
+      idempotencyKey: string;
+    }) => saveSubmission(attemptId, problemId, payload, idempotencyKey),
   });
 }
 
 export function useSubmitAttempt(attemptId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => submitAttempt(attemptId),
+    mutationFn: (idempotencyKey: string) => submitAttempt(attemptId, idempotencyKey),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["attempt", attemptId] });
       void queryClient.invalidateQueries({ queryKey: ["attempts", "me"] });
