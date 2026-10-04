@@ -15,4 +15,5 @@ function requireEnv(name: string, fallback?: string): string {
 export const config = {
   apiBaseUrl: requireEnv("NEXT_PUBLIC_API_BASE_URL", "http://localhost:5000/api/v1"),
   authBaseUrl: requireEnv("NEXT_PUBLIC_AUTH_BASE_URL", "http://localhost:5000"),
+  siteUrl: requireEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000").replace(/\/$/, ""),
 };

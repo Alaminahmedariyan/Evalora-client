@@ -5,7 +5,6 @@ import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 const productLinks = [
   { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },
-  { label: "Blog", href: "/blog" },
 ];
 
 const companyLinks = [

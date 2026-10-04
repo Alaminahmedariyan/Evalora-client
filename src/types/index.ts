@@ -13,3 +13,4 @@ export * from "./payment.type";
 export * from "./notification.type";
 export * from "./candidate.type";
 export * from "./consent.type";
+export * from "./blog.type";

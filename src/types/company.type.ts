@@ -67,3 +67,20 @@ export interface CompanyListParams {
   search?: string;
   isVerified?: boolean;
 }
+// Added by the backend's GET /companies/me/subscription (planLimits.ts).
+// null means unlimited.
+export interface PlanLimits {
+  maxAssessments: number | null;
+  maxInvitationsPer30Days: number | null;
+}
+
+export interface PlanUsage {
+  assessments: number;
+  invitationsLast30Days: number;
+}
+
+export interface SubscriptionPlanInfo {
+  effectivePlan: SubscriptionPlan;
+  limits: PlanLimits;
+  usage: PlanUsage;
+}

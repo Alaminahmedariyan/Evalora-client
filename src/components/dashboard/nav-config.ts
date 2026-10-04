@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Mail,
+  Newspaper,
   ScrollText,
   UserCircle,
   Users,
@@ -29,6 +30,7 @@ export const navByRole: Record<UserRole, NavItem[]> = {
     { label: "Users", href: "/admin/users", icon: Users },
     { label: "Companies", href: "/admin/companies", icon: Building2 },
     { label: "Payments", href: "/admin/payments", icon: CreditCard },
+     { label: "Blog", href: "/admin/blog", icon: Newspaper },
     { label: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },
   ],
   RECRUITER: [

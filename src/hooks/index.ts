@@ -12,3 +12,4 @@ export * from "./payment.hook";
 export * from "./notification.hook";
 export * from "./candidate.hook";
 export * from "./consent.hook";
+export * from "./blog.hook";
