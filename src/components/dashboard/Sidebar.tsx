@@ -28,9 +28,9 @@ export function Sidebar({
 
   return (
     <aside
-      className={cn(
-        "h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
-        variant === "desktop" ? "hidden md:flex" : "flex",
+          className={cn(
+        "w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+        variant === "desktop" ? "hidden md:sticky md:top-0 md:flex md:h-screen" : "flex h-full",
       )}
     >
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-5">

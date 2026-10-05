@@ -92,7 +92,14 @@ export interface CreateAssessmentPayload {
   problems: AssessmentProblemInput[];
 }
 
-export type UpdateAssessmentPayload = Partial<Omit<CreateAssessmentPayload, "problems">> & {
+export type UpdateAssessmentPayload = Partial<
+  Omit<CreateAssessmentPayload, "problems" | "description" | "instructions" | "startAt" | "endAt">
+> & {
+  // An empty string clears the text; null clears the date.
+  description?: string;
+  instructions?: string;
+  startAt?: string | null;
+  endAt?: string | null;
   problems?: AssessmentProblemInput[];
 };
 

@@ -13,3 +13,5 @@ export * from "./notification.api";
 export * from "./candidate.api";
 export * from "./consent.api";
 export * from "./blog.api";
+export * from "./contact.api";
+export * from "./account.api";

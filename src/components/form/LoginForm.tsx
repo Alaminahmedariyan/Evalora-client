@@ -200,6 +200,18 @@ onSubmit: async ({ value, formApi }) => {
         </Button>
       </div>
 
+            <p className="text-center text-xs text-muted-foreground">
+        By continuing with Google or GitHub, you agree to our{" "}
+        <Link href="/legal/terms" className="text-primary hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/legal/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="text-primary hover:underline">

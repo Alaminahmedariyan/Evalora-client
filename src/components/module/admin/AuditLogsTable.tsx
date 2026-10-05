@@ -217,7 +217,6 @@ export function AuditLogsTable() {
                   <th className="px-4 py-3 font-medium">When</th>
                 </tr>
               </thead>
-
               <tbody>
                 {data.data.map((log) => (
                   <AuditLogRow key={log.id} log={log} />

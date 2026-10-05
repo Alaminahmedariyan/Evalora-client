@@ -46,8 +46,7 @@ export function InviteCandidatesForm({
 
     if (!parsed.success) {
       setFormError(
-        parsed.error.issues[0]?.message ??
-          "Please check the email list.",
+        parsed.error.issues[0]?.message ?? "Please check the email list.",
       );
       return;
     }
@@ -72,6 +71,14 @@ export function InviteCandidatesForm({
       idempotencyKeyRef.current = newIdempotencyKey();
       onInvited?.();
     } catch (error) {
+      // The server answered, so this request is settled: the next try is a new
+      // action and needs a new key. Keeping the old one would replay this
+      // error, or clash with an edited email list. Only a network failure or
+      // a 5xx keeps the key, so a retry stays safe against duplicates.
+      if (isApiError(error) && error.statusCode < 500) {
+        idempotencyKeyRef.current = newIdempotencyKey();
+      }
+
       const message = isApiError(error)
         ? error.message
         : "Couldn't send invitations.";

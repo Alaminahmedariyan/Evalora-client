@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CandidateProfileForm } from "@/components/form";
 import { ConsentToggleList } from "@/components/module/consent";
+import { ProfileVisibilityCard } from "@/components/module/candidate/ProfileVisibilityCard";
 
 export default function CandidateProfilePage() {
   const { data, isPending } = useMyCandidateProfile();
@@ -19,7 +20,10 @@ export default function CandidateProfilePage() {
       {isPending ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <CandidateProfileForm profile={data?.data ?? null} />
+        <>
+          <CandidateProfileForm profile={data?.data ?? null} />
+          <ProfileVisibilityCard profile={data?.data ?? null} />
+        </>
       )}
 
       <Card>

@@ -4,6 +4,7 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
+  acceptTerms: true;
 }
 
 export interface LoginPayload {

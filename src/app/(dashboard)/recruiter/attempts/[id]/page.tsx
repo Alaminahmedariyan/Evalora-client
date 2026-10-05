@@ -30,7 +30,9 @@ export default function RecruiterAttemptDetailPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{attempt.assessment.title}</h1>
-        <p className="text-sm text-muted-foreground">Attempt detail and proctoring activity.</p>
+        <p className="text-sm text-muted-foreground">
+          {attempt.candidate ? `${attempt.candidate.name} · ${attempt.candidate.email}` : "Attempt detail and proctoring activity."}
+        </p>
       </div>
 
       <AttemptSummaryCard attempt={attempt} />

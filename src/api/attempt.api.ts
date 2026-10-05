@@ -24,11 +24,10 @@ export function getAttemptById(id: string) {
   return apiClient<ApiResponse<AttemptDetail>>(`/attempts/${id}`);
 }
 
-export function saveSubmission(attemptId: string, problemId: string, payload: SaveSubmissionPayload, idempotencyKey: string) {
-  return apiClient<ApiResponse<AttemptSubmission>>(`/attempts/${attemptId}/submissions/${problemId}`, {
+export function saveSubmission(attemptId: string, problemId: string, payload: SaveSubmissionPayload) {
+  return apiClient<ApiResponse<AttemptSubmission | null>>(`/attempts/${attemptId}/submissions/${problemId}`, {
     method: "PUT",
     body: payload,
-    headers: { "Idempotency-Key": idempotencyKey },
   });
 }
 

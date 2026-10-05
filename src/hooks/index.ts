@@ -13,3 +13,5 @@ export * from "./notification.hook";
 export * from "./candidate.hook";
 export * from "./consent.hook";
 export * from "./blog.hook";
+export * from "./contact.hook";
+export * from "./account.hook";

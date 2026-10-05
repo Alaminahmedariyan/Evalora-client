@@ -16,9 +16,10 @@ import {
   useProblems,
   useAssessments,
 } from "@/hooks";
-import { PLAN_LABEL, type SubscriptionPlan } from "@/constants/plans";
+import { formatLimit, PLAN_LABEL, type SubscriptionPlan } from "@/constants/plans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard, QuickLinkCard } from "@/components/dashboard";
+import { readPlanInfo } from "@/lib/plan-info";
 
 const skeletonItems = [
   "recruiter-stat-skeleton-1",
@@ -48,8 +49,11 @@ export default function RecruiterHomePage() {
   const company = companyRes?.data;
   const subscription = subRes?.data;
 
+  const planInfo = readPlanInfo(subscription);
+
   const currentPlan: SubscriptionPlan =
-    subscription && "plan" in subscription ? subscription.plan : "FREE";
+    planInfo?.effectivePlan ??
+    (subscription && "plan" in subscription ? subscription.plan : "FREE");
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +94,15 @@ export default function RecruiterHomePage() {
             value={PLAN_LABEL[currentPlan]}
             icon={Gauge}
             accent={currentPlan === "FREE" ? "warning" : "success"}
-          />
+          >
+            {planInfo ? (
+              <p className="text-xs text-muted-foreground">
+                {planInfo.usage.assessments}/{formatLimit(planInfo.limits.maxAssessments)} assessments ·{" "}
+                {planInfo.usage.invitationsLast30Days}/{formatLimit(planInfo.limits.maxInvitationsPer30Days)}{" "}
+                invitations
+              </p>
+            ) : null}
+          </StatCard>
 
           <StatCard
             label="Company status"

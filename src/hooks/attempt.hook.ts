@@ -33,15 +33,8 @@ export function useStartAttempt() {
 
 export function useSaveSubmission(attemptId: string) {
   return useMutation({
-    mutationFn: ({
-      problemId,
-      payload,
-      idempotencyKey,
-    }: {
-      problemId: string;
-      payload: SaveSubmissionPayload;
-      idempotencyKey: string;
-    }) => saveSubmission(attemptId, problemId, payload, idempotencyKey),
+    mutationFn: ({ problemId, payload }: { problemId: string; payload: SaveSubmissionPayload }) =>
+      saveSubmission(attemptId, problemId, payload),
   });
 }
 

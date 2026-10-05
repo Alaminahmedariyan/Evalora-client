@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import QueryProvider from "@/providers/queryProvider";
-import { config } from "next/dist/build/templates/pages";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,22 +16,47 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(config.siteUrl),
+  metadataBase: new URL(siteUrl),
+
   title: {
     default: "Evalora — Developer assessment platform",
     template: "%s | Evalora",
   },
-  description: "Evalora lets your team design coding assessments, invite candidates, and review results — with proctoring built in.",
+
+  description:
+    "Evalora lets your team design coding assessments, invite candidates, and review results — with proctoring built in.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("h-full", geistSans.variable, geistMono.variable)}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        "h-full",
+        geistSans.variable,
+        geistMono.variable,
+      )}
+    >
       <body className="min-h-full font-sans antialiased">
         <QueryProvider>
-          <div className="flex min-h-full flex-col">{children}</div>
-          <Toaster richColors position="top-right" closeButton />
+          <div className="flex min-h-full flex-col">
+            {children}
+          </div>
+
+          <Toaster
+            richColors
+            position="top-right"
+            closeButton
+          />
         </QueryProvider>
       </body>
     </html>

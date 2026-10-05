@@ -16,6 +16,7 @@ export interface CandidateProfile {
   linkedinUrl: string | null;
   githubUrl: string | null;
   portfolioUrl: string | null;
+  isVisibleToRecruiters?: boolean;
   skills: string[] | null;
   experienceYears: number | null;
   createdAt: string;
@@ -32,7 +33,8 @@ export interface UpsertCandidateProfilePayload {
   githubUrl?: string;
   portfolioUrl?: string;
   skills?: string[];
-  experienceYears?: number;
+  experienceYears?: number | null;
+  isVisibleToRecruiters?: boolean;
   resume?: File;
 }
 

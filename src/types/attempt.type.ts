@@ -67,6 +67,7 @@ export interface AttemptDetail {
   id: string;
   assessmentId: string;
   candidateId: string;
+  candidate?: { id: string; name: string; email: string };
   attemptNumber: number;
   status: AttemptStatus;
   startedAt: string | null;
