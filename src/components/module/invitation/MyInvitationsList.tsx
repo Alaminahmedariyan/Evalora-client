@@ -34,7 +34,11 @@ export function MyInvitationsList() {
 
   async function handleStart(assessmentId: string) {
     try {
-      const res = await startMutation.mutateAsync(assessmentId);
+      const res = await startMutation.mutateAsync({
+        assessmentId,
+        idempotencyKey: crypto.randomUUID(),
+      });
+
       router.push(`/exam/attempts/${res.data.id}`);
     } catch (error) {
       notify.error(
