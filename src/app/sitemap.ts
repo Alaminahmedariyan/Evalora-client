@@ -23,10 +23,13 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: Frequenc
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  
+  // Site URL fallback
+  const siteUrl = config.siteUrl || "https://evalora.vercel.app";
 
   const entries: MetadataRoute.Sitemap = STATIC_ROUTES.map(
     ({ path, priority, changeFrequency }) => ({
-      url: `${config.siteUrl}${path}`,
+      url: `${siteUrl}${path}`,
       lastModified: now,
       changeFrequency,
       priority,
@@ -35,32 +38,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const authorIds = new Set<string>();
 
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const result = await fetchPosts({ page, limit: PAGE_SIZE });
+  try {
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      const result = await fetchPosts({ page, limit: PAGE_SIZE });
 
-    // If the API is down the sitemap still lists the static pages.
-    if (!result) break;
+      // If the API returns nothing or fails, break gracefully
+      if (!result || !result.posts) break;
 
-    for (const post of result.posts) {
-      authorIds.add(post.author.id);
-      entries.push({
-        url: `${config.siteUrl}/blog/${post.slug}`,
-        lastModified: new Date(post.publishedAt ?? post.createdAt),
-        changeFrequency: "monthly",
-        priority: 0.7,
-      });
+      for (const post of result.posts) {
+        if (post?.author?.id) {
+          authorIds.add(post.author.id);
+        }
+        
+        entries.push({
+          url: `${siteUrl}/blog/${post.slug}`,
+          lastModified: new Date(post.publishedAt ?? post.createdAt),
+          changeFrequency: "monthly",
+          priority: 0.7,
+        });
+      }
+
+      if (!result.meta || page >= result.meta.totalPage) break;
     }
 
-    if (page >= result.meta.totalPage) break;
-  }
-
-  for (const id of authorIds) {
-    entries.push({
-      url: `${config.siteUrl}/blog/author/${id}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.4,
-    });
+    for (const id of authorIds) {
+      entries.push({
+        url: `${siteUrl}/blog/author/${id}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.4,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to generate dynamic sitemap entries:", error);
   }
 
   return entries;
