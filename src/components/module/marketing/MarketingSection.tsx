@@ -18,10 +18,10 @@ export function MarketingSection({
   children,
 }: MarketingSectionProps) {
   return (
-    <section id={id} className={cn(tone === "muted" && "border-t border-border bg-card")}>
+    <section id={id} className={cn("relative", tone === "muted" && "section-muted")}>
       <div
         className={cn(
-          "mx-auto px-4 py-16 md:px-6",
+          "mx-auto px-4 py-16 md:px-6 md:py-20",
           width === "narrow" ? "max-w-3xl" : "max-w-6xl",
           className,
         )}

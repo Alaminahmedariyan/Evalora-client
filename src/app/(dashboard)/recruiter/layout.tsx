@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 
-// The shell (sidebar, top bar) comes from the parent (dashboard) layout, and
-// role access is enforced by middleware.ts, so this layout adds nothing.
+import RoleGuard from "@/components/module/auth/role-guard";
+import { DashboardShell } from "@/components/dashboard";
+
 export default function RecruiterLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  return (
+    <RoleGuard roles={["RECRUITER"]}>
+      <DashboardShell userRole="RECRUITER">{children}</DashboardShell>
+    </RoleGuard>
+  );
 }

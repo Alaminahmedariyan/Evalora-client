@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import QueryProvider from "@/providers/queryProvider";
+import ThemeProvider from "@/providers/themeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -27,8 +27,7 @@ export const metadata: Metadata = {
     template: "%s | Evalora",
   },
 
-  description:
-    "Evalora lets your team design coding assessments, invite candidates, and review results — with proctoring built in.",
+  description: "Evalora lets your team design coding assessments, invite candidates, and review results — with proctoring built in.",
 };
 
 export default function RootLayout({
@@ -37,27 +36,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn(
-        "h-full",
-        geistSans.variable,
-        geistMono.variable,
-      )}
-    >
+    <html lang="en" suppressHydrationWarning className={cn("h-full", geistSans.variable, geistMono.variable)}>
       <body className="min-h-full font-sans antialiased">
-        <QueryProvider>
-          <div className="flex min-h-full flex-col">
-            {children}
-          </div>
-
-          <Toaster
-            richColors
-            position="top-right"
-            closeButton
-          />
-        </QueryProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <QueryProvider>
+            <div className="flex min-h-full flex-col">{children}</div>
+            <Toaster richColors position="top-right" closeButton theme="system" />
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

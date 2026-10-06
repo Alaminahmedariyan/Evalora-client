@@ -40,6 +40,11 @@ export interface GradingSubmission {
   language: string | null;
   status: string;
   submittedAt: string | null;
+    attempt?: {
+    id: string;
+    attemptNumber: number;
+    candidate: { id: string; name: string; email: string };
+  };
   problem: {
     id: string;
     title: string;

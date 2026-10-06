@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   closeAssessment,
@@ -12,12 +17,16 @@ import {
   restoreAssessmentVersion,
   updateAssessment,
 } from "@/api";
-import type { AssessmentListParams, UpdateAssessmentPayload } from "@/types";
+import type {
+  AssessmentListParams,
+  UpdateAssessmentPayload,
+} from "@/types";
 
 export function useAssessments(params: AssessmentListParams) {
   return useQuery({
     queryKey: ["assessments", params],
     queryFn: () => getAllAssessments(params),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -31,30 +40,51 @@ export function useAssessment(id: string) {
 
 export function useCreateAssessment() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: createAssessment,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["assessments"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["company", "subscription"],
+      });
+    },
   });
 }
 
 export function useUpdateAssessment(id: string) {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (payload: UpdateAssessmentPayload) => updateAssessment(id, payload),
+    mutationFn: (payload: UpdateAssessmentPayload) =>
+      updateAssessment(id, payload),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["assessment", id] });
-      void queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessment", id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
     },
   });
 }
 
-function useAssessmentAction(mutationFn: (id: string) => ReturnType<typeof publishAssessment>) {
+function useAssessmentAction(
+  mutationFn: (id: string) => ReturnType<typeof publishAssessment>,
+) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn,
     onSuccess: (_res, id) => {
-      void queryClient.invalidateQueries({ queryKey: ["assessment", id] });
-      void queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessment", id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
     },
   });
 }
@@ -69,9 +99,17 @@ export function useCloseAssessment() {
 
 export function useDeleteAssessment() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: deleteAssessment,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["assessments"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["company", "subscription"],
+      });
+    },
   });
 }
 
@@ -85,16 +123,32 @@ export function useAssessmentVersions(id: string) {
 
 export function useCreateAssessmentVersion() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: createAssessmentVersion,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["assessments"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["assessment"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
+    },
   });
 }
 
 export function useRestoreAssessmentVersion() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: restoreAssessmentVersion,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["assessments"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["assessment"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["assessments"],
+      });
+    },
   });
 }

@@ -1,8 +1,22 @@
 "use client";
 
-import { AlertCircle, BarChart3, Mail, Trophy, UserCircle } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertCircle,
+  BarChart3,
+  Mail,
+  Trophy,
+  UserCircle,
+} from "lucide-react";
 
-import { useMyAttempts, useMyCandidateProfile, useMyInvitations } from "@/hooks";
+import {
+  useGetMe,
+  useMyAttempts,
+  useMyCandidateProfile,
+  useMyInvitations,
+} from "@/hooks";
+import { isApiError } from "@/lib/apiClient";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard, QuickLinkCard } from "@/components/dashboard";
 
@@ -15,9 +29,14 @@ const skeletonItems = [
 ];
 
 export default function CandidateHomePage() {
-  const { data: invitationsRes, isPending: invitationsPending } = useMyInvitations();
+  const { data: meRes } = useGetMe();
+  const { error: profileError } = useMyCandidateProfile();
+  const { data: invitationsRes, isPending: invitationsPending } =
+    useMyInvitations();
   const { data: attemptsRes, isPending: attemptsPending } = useMyAttempts();
-  const { data: profileRes, isError: noProfile } = useMyCandidateProfile();
+
+  const noProfile =
+    isApiError(profileError) && profileError.statusCode === 404;
 
   const isPending = invitationsPending || attemptsPending;
 
@@ -37,25 +56,29 @@ export default function CandidateHomePage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {profileRes?.data ? `Welcome back, ${profileRes.data.user.name}` : "Welcome"}
+          {meRes?.data ? `Welcome back, ${meRes.data.name}` : "Welcome"}
         </h1>
+
         <p className="text-sm text-muted-foreground">
           Here&apos;s where things stand with your assessments.
         </p>
       </div>
 
       {noProfile ? (
-        <div className="status-pending flex items-center gap-3 rounded-md border px-4 py-3 text-sm">
-          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-          <span className="flex-1">
-            Your profile is incomplete — recruiters see this when reviewing your application.
-          </span>
-          <QuickLinkCard
-            href="/candidate/profile"
-            icon={UserCircle}
-            title=""
-            description=""
+        <div className="status-pending flex flex-wrap items-center gap-3 rounded-md border px-4 py-3 text-sm">
+          <AlertCircle
+            className="size-4 shrink-0"
+            aria-hidden="true"
           />
+
+          <span className="flex-1">
+            You haven&apos;t created a profile yet. Add a headline, skills and
+            résumé so recruiters have something to review.
+          </span>
+
+          <Button asChild size="sm" variant="outline">
+            <Link href="/candidate/profile">Complete profile</Link>
+          </Button>
         </div>
       ) : null}
 
@@ -73,12 +96,14 @@ export default function CandidateHomePage() {
             icon={Mail}
             accent={pendingInvitations > 0 ? "primary" : "success"}
           />
+
           <StatCard
             label="Ready to start"
             value={readyToStart}
             icon={BarChart3}
             accent={readyToStart > 0 ? "warning" : "success"}
           />
+
           <StatCard
             label="Completed"
             value={finishedAttempts}

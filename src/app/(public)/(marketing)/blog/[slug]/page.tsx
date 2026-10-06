@@ -7,11 +7,27 @@ import { ArrowLeft, Clock } from "lucide-react";
 import { buildBlogHref, formatBlogDate } from "@/lib/blog";
 import { fetchPost } from "@/lib/blog-server";
 import { config } from "@/lib/config";
-import { Avatar, AvatarFallback, AvatarImage, initialsFromName } from "@/components/ui/avatar";
-import { MarketingPageHeader, MarketingSection } from "@/components/module/marketing";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import {
+  MarketingPageHeader,
+  MarketingSection,
+} from "@/components/module/marketing";
 import { BlogContent, BlogPostCard } from "@/components/module/blog";
 
 type Props = { params: Promise<{ slug: string }> };
+
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -56,17 +72,18 @@ export default async function BlogPostPage({ params }: Props) {
     ...(post.coverImage && { image: [post.coverImage] }),
     ...(post.publishedAt && { datePublished: post.publishedAt }),
     dateModified: post.updatedAt,
-    author: { "@type": "Person", name: post.author.name },
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+    },
     mainEntityOfPage: url,
   };
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        // "<" is escaped so post text can never close the script tag.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
-      />
+      <script type="application/ld+json">
+        {JSON.stringify(jsonLd).replace(/</g, "\\u003c")}
+      </script>
 
       <MarketingSection width="narrow" className="pb-6">
         <Link
@@ -89,12 +106,20 @@ export default async function BlogPostPage({ params }: Props) {
               className="interactive flex items-center gap-2 hover:text-foreground"
             >
               <Avatar className="size-7">
-                <AvatarImage src={post.author.image ?? undefined} alt={post.author.name} />
-                <AvatarFallback className="text-xs">{initialsFromName(post.author.name)}</AvatarFallback>
+                <AvatarImage
+                  src={post.author.image ?? undefined}
+                  alt={post.author.name}
+                />
+                <AvatarFallback className="text-xs">
+                  {getInitials(post.author.name)}
+                </AvatarFallback>
               </Avatar>
+
               {post.author.name}
             </Link>
+
             <span>{formatBlogDate(post.publishedAt)}</span>
+
             <span className="flex items-center gap-1">
               <Clock className="size-3.5" aria-hidden="true" />
               {post.readingTimeMinutes} min read
@@ -139,6 +164,7 @@ export default async function BlogPostPage({ params }: Props) {
       {post.related.length > 0 ? (
         <MarketingSection tone="muted">
           <h2 className="mb-6 text-xl font-semibold">Keep reading</h2>
+
           <div className="grid gap-6 md:grid-cols-3">
             {post.related.map((related) => (
               <BlogPostCard key={related.id} post={related} />

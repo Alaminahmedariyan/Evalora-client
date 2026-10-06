@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
-import { useProblems } from "@/hooks";
+import { useDebounce, useProblems } from "@/hooks";
 import type { AssessmentProblemInput, ProblemListItem } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,11 @@ interface SelectedProblem extends AssessmentProblemInput {
   difficulty: ProblemListItem["difficulty"];
 }
 
+const PAGE_SIZE = 50;
+const MAX_MARKS = 1000;
+
+const renumber = (items: SelectedProblem[]) => items.map((item, index) => ({ ...item, order: index + 1 }));
+
 export function ProblemPicker({
   selected,
   onChange,
@@ -24,26 +30,50 @@ export function ProblemPicker({
   onChange: (next: SelectedProblem[]) => void;
 }) {
   const [search, setSearch] = useState("");
-  const { data } = useProblems({ limit: 50, search: search || undefined });
+  const debouncedSearch = useDebounce(search);
 
-  const available = (data?.data ?? []).filter((p) => !selected.some((s) => s.problemId === p.id));
+  const { data, isPending, isError } = useProblems({
+    limit: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  });
+
+  const results = data?.data ?? [];
+  const available = results.filter((p) => !selected.some((s) => s.problemId === p.id));
+  const hasMore = (data?.meta?.total ?? results.length) > results.length;
 
   function addProblem(problem: ProblemListItem) {
-    onChange([
-      ...selected,
-      { problemId: problem.id, order: selected.length + 1, title: problem.title, type: problem.type, difficulty: problem.difficulty, marks: problem.defaultMarks },
-    ]);
-  }
-
-  function removeProblem(problemId: string) {
     onChange(
-      selected
-        .filter((s) => s.problemId !== problemId)
-        .map((s, i) => ({ ...s, order: i + 1 })),
+      renumber([
+        ...selected,
+        {
+          problemId: problem.id,
+          order: selected.length + 1,
+          title: problem.title,
+          type: problem.type,
+          difficulty: problem.difficulty,
+          marks: problem.defaultMarks,
+        },
+      ]),
     );
   }
 
-  function updateMarks(problemId: string, marks: number) {
+  function removeProblem(problemId: string) {
+    onChange(renumber(selected.filter((s) => s.problemId !== problemId)));
+  }
+
+  function move(index: number, direction: -1 | 1) {
+    const target = index + direction;
+
+    if (target < 0 || target >= selected.length) return;
+
+    const next = [...selected];
+    [next[index], next[target]] = [next[target] as SelectedProblem, next[index] as SelectedProblem];
+    onChange(renumber(next));
+  }
+
+  function updateMarks(problemId: string, raw: string) {
+    // An empty or invalid box falls back to 1 so the total never silently becomes 0.
+    const marks = Math.min(MAX_MARKS, Math.max(1, Math.floor(Number(raw)) || 1));
     onChange(selected.map((s) => (s.problemId === problemId ? { ...s, marks } : s)));
   }
 
@@ -56,18 +86,42 @@ export function ProblemPicker({
           {selected.map((item, index) => (
             <div key={item.problemId} className="flex items-center gap-3 px-4 py-3">
               <span className="stat-number w-5 shrink-0 text-xs text-muted-foreground">{index + 1}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{item.title}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{item.title}</p>
                 <div className="mt-1 flex gap-1.5">
                   <ProblemTypeBadge type={item.type} />
                   <DifficultyBadge difficulty={item.difficulty} />
                 </div>
               </div>
+
+              <div className="flex shrink-0 flex-col">
+                <button
+                  type="button"
+                  onClick={() => move(index, -1)}
+                  disabled={index === 0}
+                  className="interactive rounded p-0.5 text-muted-foreground hover:bg-accent disabled:pointer-events-none disabled:opacity-30"
+                  aria-label={`Move ${item.title} up`}
+                >
+                  <ArrowUp className="size-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(index, 1)}
+                  disabled={index === selected.length - 1}
+                  className="interactive rounded p-0.5 text-muted-foreground hover:bg-accent disabled:pointer-events-none disabled:opacity-30"
+                  aria-label={`Move ${item.title} down`}
+                >
+                  <ArrowDown className="size-4" aria-hidden="true" />
+                </button>
+              </div>
+
               <Input
                 type="number"
                 min={1}
+                max={MAX_MARKS}
                 value={item.marks}
-                onChange={(e) => updateMarks(item.problemId, Number(e.target.value))}
+                onChange={(e) => updateMarks(item.problemId, e.target.value)}
+                aria-label={`Marks for ${item.title}`}
                 className="h-8 w-20 text-xs"
               />
               <button
@@ -97,20 +151,51 @@ export function ProblemPicker({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search your problem bank..."
         />
-        {available.length > 0 ? (
-          <div className="flex max-h-48 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border">
+
+        {isPending ? (
+          <p className="text-xs text-muted-foreground">Loading problems...</p>
+        ) : isError ? (
+          <p role="alert" className="text-xs text-danger">
+            Couldn&apos;t load your problems. Try again in a moment.
+          </p>
+        ) : results.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            {debouncedSearch ? (
+              "No problems match your search."
+            ) : (
+              <>
+                Your problem bank is empty.{" "}
+                <Link href="/recruiter/problems/new" className="text-primary hover:underline">
+                  Create a problem
+                </Link>{" "}
+                first.
+              </>
+            )}
+          </p>
+        ) : available.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Every matching problem is already in this assessment.</p>
+        ) : (
+          <div className="flex max-h-56 flex-col divide-y divide-border overflow-y-auto rounded-md border border-border">
             {available.map((problem) => (
               <button
                 key={problem.id}
                 type="button"
                 onClick={() => addProblem(problem)}
-                className="interactive flex items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
+                className="interactive flex items-center gap-3 px-3 py-2 text-left text-sm hover:bg-accent"
               >
-                <span>{problem.title}</span>
+                <span className="min-w-0 flex-1 truncate">{problem.title}</span>
+                <ProblemTypeBadge type={problem.type} />
+                <DifficultyBadge difficulty={problem.difficulty} />
                 <Plus className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </button>
             ))}
           </div>
+        )}
+
+        {hasMore ? (
+          <p className="text-xs text-muted-foreground">
+            Showing the first {PAGE_SIZE} problems. Type in the box to narrow the list.
+          </p>
         ) : null}
       </div>
     </div>

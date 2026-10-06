@@ -32,7 +32,6 @@ export const navByRole: Record<UserRole, NavItem[]> = {
     { label: "Companies", href: "/admin/companies", icon: Building2 },
     { label: "Payments", href: "/admin/payments", icon: CreditCard },
      { label: "Blog", href: "/admin/blog", icon: Newspaper },
-         { label: "Blog", href: "/admin/blog", icon: Newspaper },
     { label: "Messages", href: "/admin/messages", icon: Inbox },
     { label: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },
   ],

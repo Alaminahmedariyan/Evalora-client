@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/avatar";
 import Logo from "@/assets/svg/logo";
 import { NotificationBell } from "@/components/module/notification";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -110,6 +111,8 @@ export function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
+          <ThemeToggle />
+
           {user ? (
             <>
               <NotificationBell />
@@ -194,19 +197,23 @@ export function Header() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          className="interactive ml-auto rounded-md p-2 hover:bg-accent md:hidden"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? (
-            <X className="size-5" />
-          ) : (
-            <Menu className="size-5" />
-          )}
-        </button>
+        <div className="ml-auto flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="interactive rounded-md p-2 hover:bg-accent"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? (
+              <X className="size-5" />
+            ) : (
+              <Menu className="size-5" />
+            )}
+          </button>
+        </div>
       </div>
 
       {mobileOpen ? (

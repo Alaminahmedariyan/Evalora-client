@@ -1,17 +1,8 @@
 import type { ReactNode } from "react";
-import { redirect } from "next/navigation";
 
-// Shared by admin/recruiter/candidate: only checks that *some* session
-// exists. Role-specific checks (ADMIN vs RECRUITER vs CANDIDATE) live one
-// level down in (dashboard)/admin/layout.tsx, (dashboard)/recruiter/layout.tsx,
-// (dashboard)/candidate/layout.tsx — keep this layout role-agnostic.
-//
-// TODO: replace with your real session helper (Better Auth server client).
-// import { getServerSession } from "@/lib/auth-client";
-
-export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  // const session = await getServerSession();
-  // if (!session?.user) redirect("/login");
-
+// Shared by admin, recruiter and candidate. It stays role-agnostic on
+// purpose: each role layout wraps its pages in RoleGuard and DashboardShell,
+// and middleware.ts already sends anonymous visitors to /login.
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
