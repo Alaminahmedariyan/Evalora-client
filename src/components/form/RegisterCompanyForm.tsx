@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registerCompanyFields } from "@/validation/company.validation";
 
+const MAX_INDUSTRY_LENGTH = 100;
+const MAX_DESCRIPTION_LENGTH = 2000;
+
 export function RegisterCompanyForm() {
   const router = useRouter();
   const registerMutation = useRegisterCompany();
@@ -31,12 +34,12 @@ export function RegisterCompanyForm() {
 
       try {
         await registerMutation.mutateAsync({
-          name: value.name,
+          name: value.name.trim(),
           // Convert empty-string optional fields back to undefined so the
           // backend's .optional() fields are omitted rather than sent as "".
-          description: value.description || undefined,
-          website: value.website || undefined,
-          industry: value.industry || undefined,
+          description: value.description.trim() || undefined,
+          website: value.website.trim() || undefined,
+          industry: value.industry.trim() || undefined,
         });
 
         celebrate();
@@ -129,40 +132,68 @@ export function RegisterCompanyForm() {
         }}
       </form.Field>
 
-      <form.Field name="industry">
-        {(field) => (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>Industry</Label>
-            <Input
-              id={field.name}
-              name={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-              placeholder="Software Development"
-            />
-            <p className="text-xs text-muted-foreground">Optional</p>
-          </div>
-        )}
+      <form.Field
+        name="industry"
+        validators={{
+          onBlur: ({ value }) =>
+            value.trim().length > MAX_INDUSTRY_LENGTH
+              ? `Industry must be at most ${MAX_INDUSTRY_LENGTH} characters.`
+              : undefined,
+        }}
+      >
+        {(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+          return (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={field.name}>Industry</Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                aria-invalid={hasError}
+                placeholder="Software Development"
+              />
+              {hasError ? <p className="text-xs text-danger">{String(field.state.meta.errors[0])}</p> : null}
+              <p className="text-xs text-muted-foreground">Optional</p>
+            </div>
+          );
+        }}
       </form.Field>
 
-      <form.Field name="description">
-        {(field) => (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>Description</Label>
-            <textarea
-              id={field.name}
-              name={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-              rows={4}
-              className="interactive flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="What does your company do?"
-            />
-            <p className="text-xs text-muted-foreground">Optional, up to 2000 characters</p>
-          </div>
-        )}
+      <form.Field
+        name="description"
+        validators={{
+          onBlur: ({ value }) =>
+            value.trim().length > MAX_DESCRIPTION_LENGTH
+              ? `Description must be at most ${MAX_DESCRIPTION_LENGTH} characters.`
+              : undefined,
+        }}
+      >
+        {(field) => {
+          const hasError = field.state.meta.errors.length > 0;
+          return (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={field.name}>Description</Label>
+              <textarea
+                id={field.name}
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                rows={4}
+                aria-invalid={hasError}
+                className="interactive flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                placeholder="What does your company do?"
+              />
+              {hasError ? <p className="text-xs text-danger">{String(field.state.meta.errors[0])}</p> : null}
+              <p className="text-xs text-muted-foreground">
+                Optional, up to {MAX_DESCRIPTION_LENGTH} characters
+              </p>
+            </div>
+          );
+        }}
       </form.Field>
 
       <form.Subscribe selector={(state) => state.isSubmitting}>

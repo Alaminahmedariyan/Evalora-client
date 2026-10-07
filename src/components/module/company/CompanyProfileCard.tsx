@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Globe,
   Pencil,
   ShieldCheck,
   ShieldQuestion,
   Tag,
+  Trash2,
 } from "lucide-react";
 
 import type { Company } from "@/types";
+
+import { useDeleteCompany } from "@/hooks";
+import { isApiError } from "@/lib/apiClient";
+import { notify } from "@/lib/toast";
 
 import {
   Card,
@@ -27,6 +33,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { UpdateCompanyForm } from "@/components/form";
 
+// Where to send the user after they delete their company. Their role drops
+// back to CANDIDATE, so the recruiter area is no longer valid for them.
+const AFTER_DELETE_REDIRECT = "/";
+
 function getInitials(name: string) {
   return name
     .trim()
@@ -42,7 +52,36 @@ export function CompanyProfileCard({
 }: {
   company: Company;
 }) {
+  const router = useRouter();
+  const deleteMutation = useDeleteCompany();
   const [editing, setEditing] = useState(false);
+
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        "Delete your company? Your published assessments will be closed, pending invitations cancelled, and your account goes back to a candidate account. You can register a company again later.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteMutation.mutateAsync(company.id);
+
+      notify.success(
+        "Company deleted",
+        "Your account is now a candidate account.",
+      );
+
+      router.push(AFTER_DELETE_REDIRECT);
+      router.refresh();
+    } catch (error) {
+      notify.error(
+        "Couldn't delete company",
+        isApiError(error) ? error.message : undefined,
+      );
+    }
+  }
 
   if (editing) {
     return (
@@ -104,18 +143,34 @@ export function CompanyProfileCard({
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setEditing(true)}
-          >
-            <Pencil
-              className="size-3.5"
-              aria-hidden="true"
-            />
-            Edit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil
+                className="size-3.5"
+                aria-hidden="true"
+              />
+              Edit
+            </Button>
+
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              isLoading={deleteMutation.isPending}
+            >
+              <Trash2
+                className="size-3.5"
+                aria-hidden="true"
+              />
+              Delete
+            </Button>
+          </div>
         </div>
 
         {company.description ? (

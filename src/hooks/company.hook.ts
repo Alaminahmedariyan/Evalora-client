@@ -104,6 +104,11 @@ export function useDeleteCompany() {
   return useMutation({
     mutationFn: deleteCompany,
     onSuccess: () => {
+      // The owner is demoted to CANDIDATE server-side, so refetch the
+      // session, and drop any cached "my company" / subscription data so
+      // nothing stale is shown after the delete.
+      void queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+      queryClient.removeQueries({ queryKey: ["company"] });
       void queryClient.invalidateQueries({ queryKey: ["companies"] });
       void queryClient.invalidateQueries({ queryKey: ["users"] }); // owner gets demoted to CANDIDATE
       void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard-stats"] });
