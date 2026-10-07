@@ -3,11 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 
+import { getMe } from "@/api";
 import { authClient } from "@/lib/auth-client";
 import { isApiError } from "@/lib/apiClient";
+import { dashboardPathFor } from "@/lib/dashboard-path";
 import { useLogin } from "@/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +21,7 @@ import { config } from "@/lib/config";
 
 export function LoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const loginMutation = useLogin();
 
   const [formError, setFormError] = useState<string | null>(null);
@@ -46,15 +50,22 @@ export function LoginForm() {
 
         notify.success("Welcome back!");
 
-        const role = res.data?.user?.role?.toUpperCase();
-        if (role === "ADMIN") {
-          router.push("/admin");
-        } else if (role === "RECRUITER") {
-          router.push("/recruiter");
-        } else {
-          router.push("/candidate");
+        // Drop any stale "not logged in" result so the route guards
+        // see the new session instead of a cached error.
+        await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+
+        // The profile endpoint is the source of truth for the role,
+        // the same way TwoFactorForm resolves it.
+        let destination = "/";
+
+        try {
+          const me = await getMe();
+          destination = dashboardPathFor(me.data.role);
+        } catch {
+          // Signed in but the profile call failed: the home page still works.
         }
 
+        router.push(destination);
         router.refresh();
       } catch (error) {
         const message = isApiError(error)
@@ -189,13 +200,14 @@ export function LoginForm() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
+        {/* Social sign-in lands on /login, which sends the user to their dashboard by role. */}
         <Button
           type="button"
           variant="outline"
           onClick={() =>
             void authClient.signIn.social({
               provider: "google",
-              callbackURL: `${config.siteUrl}/dashboard`,
+              callbackURL: `${config.siteUrl}/login`,
             })
           }
         >
@@ -207,7 +219,7 @@ export function LoginForm() {
           onClick={() =>
             void authClient.signIn.social({
               provider: "github",
-              callbackURL: `${config.siteUrl}/dashboard`,
+              callbackURL: `${config.siteUrl}/login`,
             })
           }
         >
