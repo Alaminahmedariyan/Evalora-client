@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginSchema } from "@/validation";
 import { notify } from "@/lib/toast";
+import { config } from "@/lib/config";
 
 export function LoginForm() {
   const router = useRouter();
@@ -25,33 +26,35 @@ export function LoginForm() {
   const form = useForm({
     defaultValues: { email: "", password: "" },
 
-onSubmit: async ({ value, formApi }) => {
-  setFormError(null);
+    onSubmit: async ({ value, formApi }) => {
+      setFormError(null);
 
-  const parsed = loginSchema.safeParse(value);
-  if (!parsed.success) {
-    void formApi.validateAllFields("submit");
-    return;
-  }
+      const parsed = loginSchema.safeParse(value);
+      if (!parsed.success) {
+        void formApi.validateAllFields("submit");
+        return;
+      }
 
-  try {
-    const res = await loginMutation.mutateAsync(value);
+      try {
+        const res = await loginMutation.mutateAsync(value);
 
-    if (res.data?.twoFactorRedirect) {
-      notify.info("Two-factor verification required");
-      router.push("/two-factor");
-      return;
-    }
+        if (res.data?.twoFactorRedirect) {
+          notify.info("Two-factor verification required");
+          router.push("/two-factor");
+          return;
+        }
 
-    notify.success("Welcome back!");
-    router.push("/");
-    router.refresh();
-  } catch (error) {
-    const message = isApiError(error) ? error.message : "Couldn't log you in. Check your email and password.";
-    setFormError(message);
-    notify.error("Login failed", message);
-  }
-},
+        notify.success("Welcome back!");
+        router.push("/dashboard");
+        router.refresh();
+      } catch (error) {
+        const message = isApiError(error)
+          ? error.message
+          : "Couldn't log you in. Check your email and password.";
+        setFormError(message);
+        notify.error("Login failed", message);
+      }
+    },
   });
 
   return (
@@ -176,31 +179,34 @@ onSubmit: async ({ value, formApi }) => {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      {/*
-        Social login intentionally bypasses our REST layer — OAuth is a
-        browser-redirect protocol, not a JSON request/response cycle, and
-        the callback URL registered with Google/GitHub points at Better
-        Auth's own native route. authClient.signIn.social() is the correct,
-        minimal way to kick that redirect off.
-      */}
       <div className="grid grid-cols-2 gap-3">
         <Button
           type="button"
           variant="outline"
-          onClick={() => void authClient.signIn.social({ provider: "google", callbackURL: "/" })}
+          onClick={() =>
+            void authClient.signIn.social({
+              provider: "google",
+              callbackURL: `${config.siteUrl}/dashboard`,
+            })
+          }
         >
           Google
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={() => void authClient.signIn.social({ provider: "github", callbackURL: "/" })}
+          onClick={() =>
+            void authClient.signIn.social({
+              provider: "github",
+              callbackURL: `${config.siteUrl}/dashboard`,
+            })
+          }
         >
           GitHub
         </Button>
       </div>
 
-            <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-xs text-muted-foreground">
         By continuing with Google or GitHub, you agree to our{" "}
         <Link href="/legal/terms" className="text-primary hover:underline">
           Terms of Service
