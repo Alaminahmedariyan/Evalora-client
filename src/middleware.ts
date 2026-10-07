@@ -30,7 +30,8 @@ export async function middleware(request: NextRequest) {
 
   const hasSessionCookie =
     cookieHeader.includes("better-auth.session_token") ||
-    cookieHeader.includes("__Secure-better-auth.session_token");
+    cookieHeader.includes("__Secure-better-auth.session_token") ||
+    cookieHeader.includes("session");
 
   let role: string | undefined;
 
@@ -50,13 +51,8 @@ export async function middleware(request: NextRequest) {
       });
 
       if (res.ok) {
-        const json = (await res.json()) as {
-          data?: {
-            role?: string;
-          };
-        };
-
-        role = json.data?.role;
+        const json = await res.json();
+        role = json?.data?.role || json?.user?.role || json?.role;
       }
     } catch {
       role = undefined;
