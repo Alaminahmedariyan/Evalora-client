@@ -1,5 +1,8 @@
 import { Code2, History, ListChecks, ShieldCheck, Trophy, Users } from "lucide-react";
 
+import { PremiumCard } from "@/components/ui/premium-card";
+import { Reveal } from "@/components/ui/reveal";
+
 const INCLUDED = [
   {
     icon: Code2,
@@ -37,19 +40,23 @@ export function PricingIncluded() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="text-xl font-semibold">Every plan includes the full product</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Every plan includes the full product</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Plans differ only in how many assessments and invitations you can use.
         </p>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {INCLUDED.map((item) => (
-          <div key={item.title} className="flex flex-col gap-2">
-            <item.icon className="size-5 text-primary" aria-hidden="true" />
-            <h3 className="text-sm font-semibold">{item.title}</h3>
-            <p className="text-sm text-muted-foreground">{item.body}</p>
-          </div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {INCLUDED.map((item, index) => (
+          <Reveal key={item.title} delay={(index % 3) * 90} className="h-full">
+            <PremiumCard className="flex h-full flex-col gap-3 p-6">
+              <span className="icon-tile">
+                <item.icon className="size-5" aria-hidden="true" />
+              </span>
+              <h3 className="text-base font-semibold">{item.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+            </PremiumCard>
+          </Reveal>
         ))}
       </div>
     </div>

@@ -2,47 +2,32 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type MarketingSectionHeadingProps = {
-  eyebrow?: string;
-  title: ReactNode;
-  description?: string;
-  align?: "left" | "center";
+type MarketingSectionProps = {
+  id?: string;
+  tone?: "default" | "muted";
+  width?: "default" | "narrow";
   className?: string;
-  children?: ReactNode;
+  children: ReactNode;
 };
 
-export function MarketingSectionHeading({
-  eyebrow,
-  title,
-  description,
-  align = "left",
+export function MarketingSection({
+  id,
+  tone = "default",
+  width = "default",
   className,
   children,
-}: MarketingSectionHeadingProps) {
-  const centered = align === "center";
-
+}: MarketingSectionProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-wrap items-end justify-between gap-6",
-        centered && "justify-center text-center",
-        className,
-      )}
-    >
-      <div className={cn("flex max-w-2xl flex-col gap-3", centered && "items-center")}>
-        {eyebrow ? (
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            <span className="size-1.5 rounded-full bg-brand-gradient" aria-hidden="true" />
-            {eyebrow}
-          </span>
-        ) : null}
-
-        <h2 className="text-balance text-3xl font-bold tracking-tight md:text-4xl">{title}</h2>
-
-        {description ? <p className="text-base text-muted-foreground">{description}</p> : null}
+    <section id={id} className={cn("relative scroll-mt-24", tone === "muted" && "section-muted")}>
+      <div
+        className={cn(
+          "mx-auto px-5 py-20 sm:px-8 md:py-28",
+          width === "narrow" ? "max-w-3xl" : "max-w-7xl",
+          className,
+        )}
+      >
+        {children}
       </div>
-
-      {children}
-    </div>
+    </section>
   );
 }

@@ -6,6 +6,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import QueryProvider from "@/providers/queryProvider";
 import ThemeProvider from "@/providers/themeProvider";
+import SmoothScrollProvider from "@/components/ui/smoothScrollProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className="min-h-full font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProvider>
-            <div className="flex min-h-full flex-col">{children}</div>
+            <SmoothScrollProvider>
+              <div className="flex min-h-full flex-col">{children}</div>
+            </SmoothScrollProvider>
             <Toaster richColors position="top-right" closeButton theme="system" />
           </QueryProvider>
         </ThemeProvider>

@@ -655,3 +655,172 @@
   *, *::before, *::after { box-shadow: none !important; }
   body { background: #ffffff !important; color: #000000 !important; }
 }
+
+/* ============================================================
+   PREMIUM CARD SYSTEM, REVEAL, SMOOTH SCROLL
+   One shared card style for the whole site. Use the PremiumCard component.
+   ============================================================ */
+
+@layer components {
+  .premium-card {
+    --mx: 50%;
+    --my: 50%;
+    --rx: 0deg;
+    --ry: 0deg;
+    --lift: 0px;
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--card);
+    box-shadow: var(--shadow-card);
+    transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry)) translate3d(0, var(--lift), 0);
+    transition:
+      transform 450ms var(--ease-evalora),
+      box-shadow 450ms var(--ease-evalora),
+      border-color 450ms var(--ease-evalora);
+  }
+
+  /* While the pointer is moving, follow it quickly. On leave the slow transition above settles it back. */
+  .premium-card[data-tilting="true"] {
+    transition:
+      transform 120ms linear,
+      box-shadow 450ms var(--ease-evalora),
+      border-color 450ms var(--ease-evalora);
+  }
+
+  /* Soft spotlight that follows the cursor, drawn under the content */
+  .premium-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      420px circle at var(--mx) var(--my),
+      color-mix(in srgb, var(--primary) 16%, transparent),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 450ms var(--ease-evalora);
+  }
+
+  /* Thin glowing border that follows the cursor */
+  .premium-card::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      260px circle at var(--mx) var(--my),
+      color-mix(in srgb, var(--brand-via) 75%, transparent),
+      transparent 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 450ms var(--ease-evalora);
+  }
+
+  .premium-card[data-interactive="true"]:hover {
+    --lift: -6px;
+    border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .premium-card[data-interactive="true"]:hover::before,
+  .premium-card[data-interactive="true"]:hover::after {
+    opacity: 1;
+  }
+
+  .premium-card[data-variant="highlight"] {
+    border-color: transparent;
+    background: linear-gradient(var(--card), var(--card)) padding-box, var(--gradient-brand) border-box;
+    box-shadow: var(--shadow-elevated), 0 24px 60px -28px rgb(124 58 237 / 0.5);
+  }
+  .premium-card[data-variant="highlight"]::after {
+    display: none;
+  }
+  .premium-card[data-variant="highlight"][data-interactive="true"]:hover {
+    border-color: transparent;
+  }
+
+  .premium-card[data-variant="glass"] {
+    background: var(--glass-background);
+    border-color: var(--glass-border);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+  }
+
+  .premium-card[data-variant="flat"] {
+    background: color-mix(in srgb, var(--card) 75%, transparent);
+    box-shadow: none;
+  }
+
+  /* Touch screens have no hover, so skip the lift there */
+  @media (hover: none) {
+    .premium-card[data-interactive="true"]:hover {
+      --lift: 0px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .premium-card {
+      transform: none !important;
+    }
+  }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+    transition:
+      opacity 800ms var(--ease-evalora) var(--reveal-delay, 0ms),
+      transform 800ms var(--ease-evalora) var(--reveal-delay, 0ms);
+  }
+  .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Scroll progress bar, driven by the smooth scroll provider */
+  .scroll-progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    height: 3px;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    background: var(--gradient-brand);
+    pointer-events: none;
+  }
+}
+
+/* Required by Lenis smooth scrolling (same rules as lenis/dist/lenis.css) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

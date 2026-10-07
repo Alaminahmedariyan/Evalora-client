@@ -1,3 +1,5 @@
+import { PremiumCard } from "@/components/ui/premium-card";
+
 const FAQ = [
   {
     question: "Does my plan renew automatically?",
@@ -32,25 +34,25 @@ const FAQ = [
 
 export function PricingFaq() {
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold">Frequently asked questions</h2>
+    <div className="flex flex-col gap-8">
+      <h2 className="text-center text-3xl font-bold tracking-tight md:text-4xl">Frequently asked questions</h2>
 
-      <div className="card-evalora divide-y divide-border">
+      <PremiumCard variant="flat" interactive={false} className="divide-y divide-border">
         {FAQ.map((item) => (
-          <details key={item.question} className="group p-5">
-            <summary className="interactive flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+          <details key={item.question} className="group p-5 md:px-7">
+            <summary className="interactive flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium hover:text-primary md:text-base [&::-webkit-details-marker]:hidden">
               {item.question}
               <span
                 aria-hidden="true"
-                className="text-lg leading-none text-muted-foreground transition-transform group-open:rotate-45"
+                className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-lg leading-none text-primary transition-transform duration-300 group-open:rotate-45"
               >
                 +
               </span>
             </summary>
-            <p className="mt-3 text-sm text-muted-foreground">{item.answer}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
           </details>
         ))}
-      </div>
+      </PremiumCard>
     </div>
   );
 }

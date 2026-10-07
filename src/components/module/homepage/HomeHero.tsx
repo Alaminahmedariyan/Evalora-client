@@ -6,8 +6,7 @@ import {
   ClipboardCheck,
   Clock,
   Code2,
-  Download,
-  GitBranch,
+  Layers,
   LayoutDashboard,
   ListChecks,
   MousePointer2,
@@ -15,7 +14,6 @@ import {
   Rocket,
   Settings,
   ShieldCheck,
-  Star,
   Target,
   Trophy,
   Users,
@@ -25,28 +23,28 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { HomeAuthButton } from "./HomeAuthButton";
 
 const TRUST_POINTS = ["No credit card required", "Setup in minutes", "Trusted by growing teams"];
 
-// Stat Card Data
+// Facts about what Evalora does today.
 const STATS: { icon: LucideIcon; value: string; label: string }[] = [
-  { icon: Users, value: "10K+", label: "Developers hired" },
-  { icon: Zap, value: "98%", label: "Success rate" },
-  { icon: ShieldCheck, value: "24/7", label: "Proctoring support" },
-  { icon: Star, value: "4.9/5", label: "Customer rating" },
+  { icon: Layers, value: "3", label: "Question types" },
+  { icon: Zap, value: "Auto", label: "MCQ scoring" },
+  { icon: ShieldCheck, value: "Timeline", label: "Proctoring review" },
+  { icon: Trophy, value: "Ranked", label: "Results" },
 ];
 
-// Company Logos/Names
-const COMPANIES: { name: string; icon?: LucideIcon; className?: string }[] = [
-  { name: "Google", className: "text-lg font-semibold tracking-tight" },
-  { name: "Microsoft", className: "text-sm font-semibold" },
-  { name: "stripe", className: "text-lg font-extrabold lowercase tracking-tight" },
-  { name: "Meta", className: "text-base font-semibold" },
-  { name: "GitHub", icon: GitBranch, className: "text-sm font-semibold" },
-  { name: "Notion", className: "text-sm font-semibold" },
+const CAPABILITIES = [
+  "Multiple-choice",
+  "Coding with test cases",
+  "Written answers",
+  "Proctoring timeline",
+  "Grading queue",
+  "Leaderboards",
 ];
 
-// Navigation inside mockup
+// Everything below is a decorative sample. It shows the shape of the product, not real data.
 const NAV_ITEMS: { icon: LucideIcon; label: string; active?: boolean }[] = [
   { icon: LayoutDashboard, label: "Dashboard", active: true },
   { icon: ClipboardCheck, label: "Assessments" },
@@ -199,8 +197,8 @@ function DashboardMock() {
             </div>
 
             <span className="hidden shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-sm sm:inline-flex">
-              <Download className="size-3" aria-hidden="true" />
-              Download Report
+              <Trophy className="size-3" aria-hidden="true" />
+              View results
             </span>
           </div>
 
@@ -303,7 +301,7 @@ function HeroVisual() {
       <div aria-hidden="true" className="absolute right-[2%] top-[2%] -z-10 size-56 rounded-full bg-violet-400/30 blur-[80px] dark:bg-violet-500/30" />
       <div aria-hidden="true" className="absolute bottom-[-4%] left-[8%] -z-10 h-36 w-[80%] rounded-full bg-fuchsia-300/25 blur-[70px] dark:bg-fuchsia-500/20" />
 
-      {/* Glass ring behind top right */}
+      {/* Glass ring behind the top right corner */}
       <svg
         aria-hidden="true"
         viewBox="0 0 300 300"
@@ -318,7 +316,7 @@ function HeroVisual() {
         <circle cx="150" cy="150" r="130" fill="none" stroke="url(#hero-ring)" strokeWidth="6" />
       </svg>
 
-      {/* Glass slabs */}
+      {/* Glass slabs that form the base under the dashboard */}
       <div
         aria-hidden="true"
         className="absolute bottom-0 left-[6%] hidden h-44 w-[62%] rounded-[2rem] border border-white/50 bg-gradient-to-br from-blue-300/50 via-violet-300/40 to-fuchsia-200/40 backdrop-blur-md dark:border-white/10 dark:from-blue-500/25 dark:via-violet-500/25 dark:to-fuchsia-500/15 lg:block [transform:perspective(1200px)_rotateX(58deg)_rotateZ(-6deg)]"
@@ -328,7 +326,7 @@ function HeroVisual() {
         className="absolute right-[-2%] top-[14%] hidden h-[72%] w-40 rounded-[2rem] border border-white/50 bg-gradient-to-b from-sky-300/50 via-violet-300/40 to-indigo-300/40 backdrop-blur-md dark:border-white/10 dark:from-sky-500/25 dark:via-violet-500/25 dark:to-indigo-500/20 lg:block [transform:perspective(1200px)_rotateY(-28deg)]"
       />
 
-      {/* Code monitors */}
+      {/* Dark code monitors */}
       <CodeMonitor
         className="right-[4%] top-[2%] w-[300px] opacity-95"
         style={{ transform: "perspective(1000px) rotateY(-24deg) rotateZ(4deg)" }}
@@ -349,8 +347,8 @@ function HeroVisual() {
           <ShieldCheck className="size-5" />
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-bold">AI Proctoring</p>
-          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">Detects cheating in real-time</p>
+          <p className="text-xs font-bold">Proctoring signals</p>
+          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">Tab switches and full-screen exits are logged</p>
         </div>
         <span className="absolute right-3 top-3 size-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
       </FloatingCard>
@@ -392,11 +390,11 @@ function HeroVisual() {
 
       <FloatingCard className="animate-float-slow right-[2%] bottom-[-1%] w-[215px] rotate-1 items-center gap-3 p-3.5 lg:right-[-1%]">
         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
-          <Download className="size-5" />
+          <Trophy className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold">Download Reports</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">PDF, CSV, Excel</p>
+          <p className="text-xs font-bold">Results and ranks</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">A leaderboard for every assessment</p>
         </div>
         <span className="grid size-5 place-items-center rounded-full bg-blue-500 text-white">
           <ChevronRight className="size-3" />
@@ -407,20 +405,20 @@ function HeroVisual() {
   );
 }
 
-function CompanyStrip() {
+function CapabilityStrip() {
   return (
     <div className="relative bg-gradient-to-b from-transparent via-primary/[0.06] to-primary/[0.12] pb-8 pt-10">
       <div className="mx-auto flex max-w-3xl items-center gap-4 px-4 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-border" />
-        <span className="shrink-0">Trusted by innovative companies worldwide</span>
+        <span className="shrink-0">Everything in one place</span>
         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-border" />
       </div>
 
       <ul className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-x-9 gap-y-3 px-4 text-muted-foreground/80 sm:gap-x-12">
-        {COMPANIES.map((company) => (
-          <li key={company.name} className={cn("flex items-center gap-1.5", company.className)}>
-            {company.icon ? <company.icon className="size-4" aria-hidden="true" /> : null}
-            {company.name}
+        {CAPABILITIES.map((item) => (
+          <li key={item} className="flex items-center gap-2 text-sm font-semibold">
+            <Check className="size-4 text-primary" aria-hidden="true" />
+            {item}
           </li>
         ))}
       </ul>
@@ -452,7 +450,7 @@ export function HomeHero() {
         />
       </svg>
 
-      <div className="mx-auto grid max-w-[1480px] items-center gap-10 px-5 pb-10 pt-10 sm:px-8 sm:pt-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6 lg:pt-16">
+      <div className="mx-auto grid max-w-[1480px] items-center gap-10 px-5 pb-10 pt-10 sm:px-8 sm:pt-14 lg:min-h-[780px] lg:grid-cols-[0.95fr_1.05fr] lg:gap-6 lg:pt-16">
         <div className="relative z-20 flex flex-col items-start">
           <div
             className="animate-fade-up mb-7 inline-flex items-center gap-2.5 rounded-full border border-primary/15 bg-card/75 py-1 pl-1 pr-4 text-[11px] font-medium text-muted-foreground shadow-[0_8px_30px_rgba(71,92,160,0.1)] backdrop-blur-xl"
@@ -492,13 +490,14 @@ export function HomeHero() {
           </p>
 
           <div className="animate-fade-up mt-8 flex flex-wrap gap-3" style={delay(240)}>
-            <Button asChild size="xl" variant="gradient" className="min-w-60 rounded-full">
-              <Link href="/register">
-                <Rocket aria-hidden="true" />
-                Create a Free Account
-                <ArrowRight className="transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
+            <HomeAuthButton
+              guestLabel="Create a Free Account"
+              size="xl"
+              variant="gradient"
+              className="min-w-60 rounded-full"
+              leading={<Rocket aria-hidden="true" />}
+              trailing={<ArrowRight className="transition-transform group-hover:translate-x-1" aria-hidden="true" />}
+            />
 
             <Button asChild size="xl" variant="glass" className="rounded-full px-6">
               <Link href="/about">
@@ -555,7 +554,7 @@ export function HomeHero() {
         </div>
       </div>
 
-      <CompanyStrip />
+      <CapabilityStrip />
     </section>
   );
 }
