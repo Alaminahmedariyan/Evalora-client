@@ -26,10 +26,8 @@ function dashboardPathFor(role?: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
   const cookieHeader = request.headers.get("cookie") ?? "";
 
-  // Better Auth cookie names in production (can be better-auth.session_token or __Secure-better-auth.session_token)
   const hasSessionCookie =
     cookieHeader.includes("better-auth.session_token") ||
     cookieHeader.includes("__Secure-better-auth.session_token");
@@ -38,18 +36,16 @@ export async function middleware(request: NextRequest) {
 
   if (hasSessionCookie) {
     try {
-      // Priority: BACKEND_URL env -> NEXT_PUBLIC_AUTH_BASE_URL env -> fallback
-      const backendUrl =
-        process.env.BACKEND_URL ||
-        process.env.NEXT_PUBLIC_AUTH_BASE_URL ||
-        "http://localhost:5000";
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://evalora-server.vercel.app/api/v1";
 
-      const res = await fetch(`${backendUrl}/api/v1/auth/me`, {
+      const internalSecret = process.env.INTERNAL_API_SECRET;
+
+      const res = await fetch(`${apiBaseUrl}/auth/me`, {
         headers: {
           cookie: cookieHeader,
-          ...(process.env.INTERNAL_API_SECRET
-            ? { "x-internal-secret": process.env.INTERNAL_API_SECRET }
-            : {}),
+          ...(internalSecret ? { "x-internal-secret": internalSecret } : {}),
         },
       });
 
@@ -69,7 +65,6 @@ export async function middleware(request: NextRequest) {
 
   const isLoggedIn = Boolean(role);
 
-  // If user hits /dashboard directly
   if (pathname === "/dashboard") {
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -77,12 +72,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
   }
 
-  // Logged-in user trying to access /login, /register, etc. -> redirect to their dashboard
   if (isLoggedIn && AUTH_ONLY_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.redirect(new URL(dashboardPathFor(role), request.url));
   }
 
-  // Protected paths like /billing, /settings
   if (
     PROTECTED_NO_ROLE_PATHS.some((path) => pathname.startsWith(path)) &&
     !isLoggedIn
@@ -90,7 +83,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Role-based route guard
   const matchedPrefix = Object.keys(ROLE_BY_PREFIX).find(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
