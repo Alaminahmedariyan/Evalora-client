@@ -45,7 +45,16 @@ export function LoginForm() {
         }
 
         notify.success("Welcome back!");
-        router.push("/dashboard");
+
+        const role = res.data?.user?.role?.toUpperCase();
+        if (role === "ADMIN") {
+          router.push("/admin");
+        } else if (role === "RECRUITER") {
+          router.push("/recruiter");
+        } else {
+          router.push("/candidate");
+        }
+
         router.refresh();
       } catch (error) {
         const message = isApiError(error)
