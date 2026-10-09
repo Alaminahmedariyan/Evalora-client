@@ -34,9 +34,7 @@ export function DashboardStats() {
 
   if (isError || !data) {
     return (
-      <div className="status-danger rounded-md border px-4 py-3 text-sm">
-        Couldn&apos;t load dashboard stats. Try refreshing the page.
-      </div>
+      <div className="status-danger rounded-md border px-4 py-3 text-sm">Couldn&apos;t load dashboard stats. Try refreshing the page.</div>
     );
   }
 
@@ -49,7 +47,12 @@ export function DashboardStats() {
       </StatCard>
 
       <StatCard label="Companies" value={stats.companies.total} icon={Building2} accent="primary">
-        <p className="text-xs text-muted-foreground">{stats.companies.verified} verified</p>
+        <p className="text-xs text-muted-foreground">
+          {stats.companies.verified} verified
+          {stats.companies.total - stats.companies.verified > 0
+            ? ` · ${stats.companies.total - stats.companies.verified} awaiting verification`
+            : ""}
+        </p>
       </StatCard>
 
       <StatCard label="Problems" value={stats.problems.total} icon={Code2} accent="primary" />

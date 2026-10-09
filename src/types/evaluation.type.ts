@@ -42,6 +42,7 @@ export interface GradingSubmission {
   submittedAt: string | null;
     attempt?: {
     id: string;
+    assessmentId?: string;
     attemptNumber: number;
     candidate: { id: string; name: string; email: string };
   };

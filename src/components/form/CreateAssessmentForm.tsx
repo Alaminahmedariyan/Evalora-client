@@ -4,17 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 
-import type {
-  AssessmentProblemInput,
-  ProblemListItem,
-} from "@/types";
+import type { AssessmentProblemInput, ProblemListItem } from "@/types";
 import { useCreateAssessment } from "@/hooks";
 import { isApiError } from "@/lib/apiClient";
 import { notify } from "@/lib/toast";
-import {
-  createAssessmentSchema,
-  baseAssessmentFields,
-} from "@/validation";
+import { createAssessmentSchema, baseAssessmentFields } from "@/validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,10 +45,7 @@ export function CreateAssessmentForm() {
     onSubmit: async ({ value }) => {
       setFormError(null);
 
-      const totalMarks = problems.reduce(
-        (sum, problem) => sum + problem.marks,
-        0,
-      );
+      const totalMarks = problems.reduce((sum, problem) => sum + problem.marks, 0);
 
       const payload = {
         title: value.title,
@@ -66,13 +57,9 @@ export function CreateAssessmentForm() {
         passingMarks: value.passingMarks,
         maxAttempts: value.maxAttempts,
 
-        startAt: value.startAt
-          ? new Date(value.startAt).toISOString()
-          : undefined,
+        startAt: value.startAt ? new Date(value.startAt).toISOString() : undefined,
 
-        endAt: value.endAt
-          ? new Date(value.endAt).toISOString()
-          : undefined,
+        endAt: value.endAt ? new Date(value.endAt).toISOString() : undefined,
 
         shuffleQuestions: value.shuffleQuestions,
         showResultImmediately: value.showResultImmediately,
@@ -83,51 +70,33 @@ export function CreateAssessmentForm() {
          */
         allowReview: value.allowReview,
 
-        problems: problems.map(
-          ({ problemId, order, marks }) => ({
-            problemId,
-            order,
-            marks,
-          }),
-        ),
+        problems: problems.map(({ problemId, order, marks }) => ({
+          problemId,
+          order,
+          marks,
+        })),
       };
 
-      if (
-        payload.startAt &&
-        payload.endAt &&
-        payload.endAt <= payload.startAt
-      ) {
-        setFormError(
-          "The end time must be after the start time.",
-        );
+      if (payload.startAt && payload.endAt && payload.endAt <= payload.startAt) {
+        setFormError("The end time must be after the start time.");
         return;
       }
 
       const parsed = createAssessmentSchema.safeParse(payload);
 
       if (!parsed.success) {
-        setFormError(
-          parsed.error.issues[0]?.message ??
-            "Please check the form for errors.",
-        );
+        setFormError(parsed.error.issues[0]?.message ?? "Please check the form for errors.");
         return;
       }
 
       try {
         const res = await createMutation.mutateAsync(payload);
 
-        notify.success(
-          "Assessment created",
-          "It's saved as a draft — publish it when ready.",
-        );
+        notify.success("Assessment created", "It's saved as a draft — publish it when ready.");
 
-        router.push(
-          `/recruiter/assessments/${res.data.id}`,
-        );
+        router.push(`/recruiter/assessments/${res.data.id}`);
       } catch (error) {
-        const message = isApiError(error)
-          ? error.message
-          : "Couldn't create the assessment.";
+        const message = isApiError(error) ? error.message : "Couldn't create the assessment.";
 
         setFormError(message);
         notify.error("Creation failed", message);
@@ -146,10 +115,7 @@ export function CreateAssessmentForm() {
       noValidate
     >
       {formError ? (
-        <div
-          role="alert"
-          className="status-danger rounded-md border px-3 py-2 text-sm"
-        >
+        <div role="alert" className="status-danger rounded-md border px-3 py-2 text-sm">
           {formError}
         </div>
       ) : null}
@@ -157,10 +123,7 @@ export function CreateAssessmentForm() {
       <form.Field
         name="title"
         validators={{
-          onBlur: ({ value }) =>
-            baseAssessmentFields.shape.title.safeParse(
-              value,
-            ).error?.issues[0]?.message,
+          onBlur: ({ value }) => baseAssessmentFields.shape.title.safeParse(value).error?.issues[0]?.message,
         }}
       >
         {(field) => (
@@ -171,17 +134,11 @@ export function CreateAssessmentForm() {
               id={field.name}
               value={field.state.value}
               onBlur={field.handleBlur}
-              onChange={(event) =>
-                field.handleChange(event.target.value)
-              }
+              onChange={(event) => field.handleChange(event.target.value)}
               placeholder="Junior Full-Stack Developer Assessment"
             />
 
-            {field.state.meta.errors[0] ? (
-              <p className="text-xs text-danger">
-                {String(field.state.meta.errors[0])}
-              </p>
-            ) : null}
+            {field.state.meta.errors[0] ? <p className="text-xs text-danger">{String(field.state.meta.errors[0])}</p> : null}
           </div>
         )}
       </form.Field>
@@ -189,16 +146,12 @@ export function CreateAssessmentForm() {
       <form.Field name="description">
         {(field) => (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>
-              Description (optional)
-            </Label>
+            <Label htmlFor={field.name}>Description (optional)</Label>
 
             <textarea
               id={field.name}
               value={field.state.value}
-              onChange={(event) =>
-                field.handleChange(event.target.value)
-              }
+              onChange={(event) => field.handleChange(event.target.value)}
               rows={2}
               className="interactive flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
@@ -209,16 +162,12 @@ export function CreateAssessmentForm() {
       <form.Field name="instructions">
         {(field) => (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>
-              Instructions for candidates (optional)
-            </Label>
+            <Label htmlFor={field.name}>Instructions for candidates (optional)</Label>
 
             <textarea
               id={field.name}
               value={field.state.value}
-              onChange={(event) =>
-                field.handleChange(event.target.value)
-              }
+              onChange={(event) => field.handleChange(event.target.value)}
               rows={2}
               className="interactive flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="You have 60 minutes. Do not switch tabs."
@@ -231,9 +180,7 @@ export function CreateAssessmentForm() {
         <form.Field name="durationMinutes">
           {(field) => (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={field.name}>
-                Duration (minutes)
-              </Label>
+              <Label htmlFor={field.name}>Duration (minutes)</Label>
 
               <Input
                 id={field.name}
@@ -241,11 +188,7 @@ export function CreateAssessmentForm() {
                 min={5}
                 max={600}
                 value={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(
-                    Number(event.target.value),
-                  )
-                }
+                onChange={(event) => field.handleChange(Number(event.target.value))}
               />
             </div>
           )}
@@ -254,9 +197,7 @@ export function CreateAssessmentForm() {
         <form.Field name="maxAttempts">
           {(field) => (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={field.name}>
-                Max attempts
-              </Label>
+              <Label htmlFor={field.name}>Max attempts</Label>
 
               <Input
                 id={field.name}
@@ -264,11 +205,7 @@ export function CreateAssessmentForm() {
                 min={1}
                 max={10}
                 value={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(
-                    Number(event.target.value),
-                  )
-                }
+                onChange={(event) => field.handleChange(Number(event.target.value))}
               />
             </div>
           )}
@@ -279,17 +216,13 @@ export function CreateAssessmentForm() {
         <form.Field name="startAt">
           {(field) => (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={field.name}>
-                Starts at (optional)
-              </Label>
+              <Label htmlFor={field.name}>Starts at (optional)</Label>
 
               <Input
                 id={field.name}
                 type="datetime-local"
                 value={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(event.target.value)
-                }
+                onChange={(event) => field.handleChange(event.target.value)}
               />
             </div>
           )}
@@ -298,17 +231,13 @@ export function CreateAssessmentForm() {
         <form.Field name="endAt">
           {(field) => (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor={field.name}>
-                Ends at (optional)
-              </Label>
+              <Label htmlFor={field.name}>Ends at (optional)</Label>
 
               <Input
                 id={field.name}
                 type="datetime-local"
                 value={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(event.target.value)
-                }
+                onChange={(event) => field.handleChange(event.target.value)}
               />
             </div>
           )}
@@ -318,40 +247,24 @@ export function CreateAssessmentForm() {
       <div className="flex flex-col gap-2">
         <Label>Problems</Label>
 
-        <ProblemPicker
-          selected={problems}
-          onChange={setProblems}
-        />
+        <ProblemPicker selected={problems} onChange={setProblems} />
       </div>
 
       <form.Field name="passingMarks">
         {(field) => (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>
-              Passing marks
-            </Label>
+            <Label htmlFor={field.name}>Passing marks</Label>
 
             <Input
               id={field.name}
               type="number"
               min={0}
               value={field.state.value}
-              onChange={(event) =>
-                field.handleChange(
-                  Number(event.target.value),
-                )
-              }
+              onChange={(event) => field.handleChange(Number(event.target.value))}
               className="max-w-[160px]"
             />
 
-            <p className="text-xs text-muted-foreground">
-              Out of{" "}
-              {problems.reduce(
-                (sum, problem) => sum + problem.marks,
-                0,
-              )}{" "}
-              total marks
-            </p>
+            <p className="text-xs text-muted-foreground">Out of {problems.reduce((sum, problem) => sum + problem.marks, 0)} total marks</p>
           </div>
         )}
       </form.Field>
@@ -363,14 +276,9 @@ export function CreateAssessmentForm() {
               <input
                 type="checkbox"
                 checked={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(
-                    event.target.checked,
-                  )
-                }
+                onChange={(event) => field.handleChange(event.target.checked)}
                 className="size-4 rounded border-input"
               />
-
               Shuffle question order per candidate
             </label>
           )}
@@ -378,20 +286,20 @@ export function CreateAssessmentForm() {
 
         <form.Field name="showResultImmediately">
           {(field) => (
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(
-                    event.target.checked,
-                  )
-                }
-                className="size-4 rounded border-input"
+                onChange={(event) => field.handleChange(event.target.checked)}
+                className="mt-0.5 size-4 rounded border-input"
               />
 
-              Show result to candidate immediately after
-              submission
+              <span>
+                Show result to candidate as soon as it is graded
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Off: candidates see their results only after you close the assessment, and they&apos;re notified at that point.
+                </span>
+              </span>
             </label>
           )}
         </form.Field>
@@ -402,30 +310,18 @@ export function CreateAssessmentForm() {
               <input
                 type="checkbox"
                 checked={field.state.value}
-                onChange={(event) =>
-                  field.handleChange(
-                    event.target.checked,
-                  )
-                }
+                onChange={(event) => field.handleChange(event.target.checked)}
                 className="size-4 rounded border-input"
               />
-
-              Allow candidates to go back to earlier
-              questions
+              Allow candidates to go back to earlier questions
             </label>
           )}
         </form.Field>
       </div>
 
-      <form.Subscribe
-        selector={(state) => state.isSubmitting}
-      >
+      <form.Subscribe selector={(state) => state.isSubmitting}>
         {(isSubmitting) => (
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            className="self-start"
-          >
+          <Button type="submit" isLoading={isSubmitting} className="self-start">
             Create assessment (draft)
           </Button>
         )}

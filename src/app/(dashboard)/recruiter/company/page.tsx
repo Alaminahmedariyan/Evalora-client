@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CompanyProfileCard } from "@/components/module/company/CompanyProfileCard";
 import { SubscriptionCard } from "@/components/module/company/SubscriptionCard";
 import { RegisterCompanyForm } from "@/components/form";
+import { CompanyVerificationBanner } from "@/components/module/company/CompanyVerificationBanner";
 
 export default function RecruiterCompanyPage() {
   const { data, isPending, isError, error } = useMyCompany();
@@ -18,8 +19,7 @@ export default function RecruiterCompanyPage() {
     statusCode?: number;
     response?: { status?: number };
   } | null;
-  const status =
-    errorShape?.status ?? errorShape?.statusCode ?? errorShape?.response?.status;
+  const status = errorShape?.status ?? errorShape?.statusCode ?? errorShape?.response?.status;
   const hasNoCompany = isError && status === 404;
 
   const company = data?.data;
@@ -28,10 +28,10 @@ export default function RecruiterCompanyPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Company</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your company profile and subscription.
-        </p>
+        <p className="text-sm text-muted-foreground">Manage your company profile and subscription.</p>
       </div>
+
+      <CompanyVerificationBanner />
 
       {isPending ? (
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">

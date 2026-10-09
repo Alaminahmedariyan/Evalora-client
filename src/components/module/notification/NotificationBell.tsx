@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 
-import {
-  useDeleteNotification,
-  useMarkAllAsRead,
-  useMarkAsRead,
-  useMyNotifications,
-  useUnreadCount,
-} from "@/hooks";
+import { useDeleteNotification, useMarkAllAsRead, useMarkAsRead, useMyNotifications, useUnreadCount } from "@/hooks";
 import { isApiError } from "@/lib/apiClient";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -51,10 +45,7 @@ export function NotificationBell() {
     try {
       await markAllMutation.mutateAsync();
     } catch (error) {
-      notify.error(
-        "Couldn't mark all as read",
-        isApiError(error) ? error.message : undefined,
-      );
+      notify.error("Couldn't mark all as read", isApiError(error) ? error.message : undefined);
     }
   }
 
@@ -62,10 +53,7 @@ export function NotificationBell() {
     try {
       await deleteMutation.mutateAsync(id);
     } catch (error) {
-      notify.error(
-        "Couldn't delete notification",
-        isApiError(error) ? error.message : undefined,
-      );
+      notify.error("Couldn't delete notification", isApiError(error) ? error.message : undefined);
     }
   }
 
@@ -92,9 +80,7 @@ export function NotificationBell() {
         role="menu"
         className={cn(
           "surface-elevated absolute right-0 top-12 z-50 flex w-80 flex-col rounded-lg transition",
-          open
-            ? "pointer-events-auto scale-100 opacity-100"
-            : "pointer-events-none scale-95 opacity-0",
+          open ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0",
         )}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
@@ -117,18 +103,11 @@ export function NotificationBell() {
           {isPending ? (
             <div className="flex flex-col gap-2 p-3">
               {skeletonItems.map((id) => (
-                <Skeleton
-                  key={id}
-                  className="h-14 w-full"
-                />
+                <Skeleton key={id} className="h-14 w-full" />
               ))}
             </div>
           ) : !data?.data.length ? (
-            <EmptyState
-              icon={Bell}
-              title="No notifications"
-              description="You're all caught up."
-            />
+            <EmptyState icon={Bell} title="No notifications" description="You're all caught up." />
           ) : (
             <div className="flex flex-col divide-y divide-border">
               {data.data.map((notification) => (
@@ -137,6 +116,7 @@ export function NotificationBell() {
                   notification={notification}
                   onRead={(id) => markReadMutation.mutate(id)}
                   onDelete={handleDelete}
+                  onNavigate={() => setOpen(false)}
                 />
               ))}
             </div>

@@ -79,6 +79,8 @@ export interface AttemptDetail {
   assessment: {
     id: string;
     title: string;
+    description?: string | null;
+    instructions?: string | null;
     companyId: string;
     durationMinutes: number;
     totalMarks: number;

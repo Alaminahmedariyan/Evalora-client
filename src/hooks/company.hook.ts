@@ -10,6 +10,8 @@ import {
   updateMyCompany,
   updateMySubscription,
   verifyCompany,
+  getCompanyById,
+  requestCompanyVerification,
 } from "@/api";
 import { isApiError } from "@/lib/apiClient";
 import { CompanyListParams } from "@/types";
@@ -114,6 +116,19 @@ export function useDeleteCompany() {
       void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard-stats"] });
     },
   });
+}
+
+export function useCompany(id: string) {
+  return useQuery({
+    queryKey: ["companies", "detail", id],
+    queryFn: () => getCompanyById(id),
+    enabled: !!id,
+    retry: false,
+  });
+}
+
+export function useRequestCompanyVerification() {
+  return useMutation({ mutationFn: requestCompanyVerification });
 }
 
 export { isApiError };

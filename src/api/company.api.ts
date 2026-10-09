@@ -62,3 +62,13 @@ export function verifyCompany(id: string) {
 export function deleteCompany(id: string) {
   return apiClient<ApiResponse<null>>(`/companies/${id}`, { method: "DELETE" });
 }
+
+export function getCompanyById(id: string) {
+  return apiClient<ApiResponse<Company>>(`/companies/${id}`);
+}
+
+export function requestCompanyVerification() {
+  return apiClient<ApiResponse<{ notified: number }>>("/companies/me/request-verification", {
+    method: "POST",
+  });
+}

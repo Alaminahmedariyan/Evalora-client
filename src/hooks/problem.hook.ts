@@ -1,12 +1,28 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { createProblem, deleteProblem, getAllProblems, getProblemById, updateProblem } from "@/api";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+import {
+  createProblem,
+  deleteProblem,
+  getAllProblems,
+  getProblemById,
+  updateProblem,
+} from "@/api";
+
 import type { ProblemListParams, UpdateProblemPayload } from "@/types";
 
 export function useProblems(params: ProblemListParams) {
   return useQuery({
     queryKey: ["problems", params],
     queryFn: () => getAllProblems(params),
+    // Keep showing the current rows while the next search or page loads,
+    // instead of flashing back to skeletons on every keystroke.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -20,6 +36,7 @@ export function useProblem(id: string) {
 
 export function useCreateProblem() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: createProblem,
     onSuccess: () => {
@@ -30,6 +47,7 @@ export function useCreateProblem() {
 
 export function useDeleteProblem() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: deleteProblem,
     onSuccess: () => {
@@ -40,8 +58,10 @@ export function useDeleteProblem() {
 
 export function useUpdateProblem(id: string) {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (payload: UpdateProblemPayload) => updateProblem(id, payload),
+    mutationFn: (payload: UpdateProblemPayload) =>
+      updateProblem(id, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["problem", id] });
       void queryClient.invalidateQueries({ queryKey: ["problems"] });
