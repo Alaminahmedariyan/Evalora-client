@@ -38,22 +38,35 @@ export function BlogCategoriesManager() {
     e.preventDefault();
     setFormError(null);
 
-    const parsed = blogCategorySchema.safeParse({ name, description });
+    const parsed = blogCategorySchema.safeParse({
+      name,
+      description,
+    });
+
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "Please check the fields.");
+      setFormError(
+        parsed.error.issues[0]?.message ?? "Please check the fields.",
+      );
       return;
     }
 
     try {
       await createMutation.mutateAsync({
         name: parsed.data.name,
-        ...(parsed.data.description ? { description: parsed.data.description } : {}),
+        ...(parsed.data.description
+          ? { description: parsed.data.description }
+          : {}),
       });
+
       notify.success("Category created");
       setName("");
       setDescription("");
     } catch (error) {
-      setFormError(isApiError(error) ? error.message : "Couldn't create the category.");
+      setFormError(
+        isApiError(error)
+          ? error.message
+          : "Couldn't create the category.",
+      );
     }
   }
 
@@ -67,43 +80,74 @@ export function BlogCategoriesManager() {
   async function handleSaveEdit(id: string) {
     setEditError(null);
 
-    const parsed = blogCategorySchema.safeParse({ name: editName, description: editDescription });
+    const parsed = blogCategorySchema.safeParse({
+      name: editName,
+      description: editDescription,
+    });
+
     if (!parsed.success) {
-      setEditError(parsed.error.issues[0]?.message ?? "Please check the fields.");
+      setEditError(
+        parsed.error.issues[0]?.message ?? "Please check the fields.",
+      );
       return;
     }
 
     try {
-      await updateMutation.mutateAsync({ id, payload: parsed.data });
+      await updateMutation.mutateAsync({
+        id,
+        payload: parsed.data,
+      });
+
       notify.success("Category updated");
       setEditingId(null);
     } catch (error) {
-      setEditError(isApiError(error) ? error.message : "Couldn't update the category.");
+      setEditError(
+        isApiError(error)
+          ? error.message
+          : "Couldn't update the category.",
+      );
     }
   }
 
   async function handleDelete(category: BlogCategory) {
-    if (!window.confirm(`Delete the "${category.name}" category?`)) return;
+    if (!window.confirm(`Delete the "${category.name}" category?`)) {
+      return;
+    }
 
     try {
       await deleteMutation.mutateAsync(category.id);
       notify.success("Category deleted");
     } catch (error) {
-      notify.error("Couldn't delete category", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't delete category",
+        isApiError(error) ? error.message : undefined,
+      );
     }
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={handleCreate} className="card-evalora flex flex-col gap-4 p-5" noValidate>
+      <form
+        onSubmit={handleCreate}
+        className="card-evalora flex flex-col gap-4 p-5"
+        noValidate
+      >
         <h2 className="text-sm font-semibold">New category</h2>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="category-name">Name</Label>
-            <Input id="category-name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              id="category-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
+
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="category-description">Description (optional)</Label>
+            <Label htmlFor="category-description">
+              Description (optional)
+            </Label>
             <Input
               id="category-description"
               value={description}
@@ -111,21 +155,28 @@ export function BlogCategoriesManager() {
             />
           </div>
         </div>
+
         {formError ? (
           <p role="alert" className="text-xs text-danger">
             {formError}
           </p>
         ) : null}
-        <Button type="submit" size="sm" className="self-start" isLoading={createMutation.isPending}>
+
+        <Button
+          type="submit"
+          size="sm"
+          className="self-start"
+          isLoading={createMutation.isPending}
+        >
           Add category
         </Button>
       </form>
 
       {isPending ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full" />
-          ))}
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       ) : isError ? (
         <div className="status-danger rounded-md border px-4 py-3 text-sm">
@@ -149,27 +200,39 @@ export function BlogCategoriesManager() {
                       onChange={(e) => setEditName(e.target.value)}
                       aria-label="Category name"
                     />
+
                     <Input
                       value={editDescription}
-                      onChange={(e) => setEditDescription(e.target.value)}
+                      onChange={(e) =>
+                        setEditDescription(e.target.value)
+                      }
                       placeholder="Description"
                       aria-label="Category description"
                     />
                   </div>
+
                   {editError ? (
                     <p role="alert" className="text-xs text-danger">
                       {editError}
                     </p>
                   ) : null}
+
                   <div className="flex gap-2">
                     <Button
+                      type="button"
                       size="sm"
                       onClick={() => void handleSaveEdit(category.id)}
                       isLoading={updateMutation.isPending}
                     >
                       Save
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingId(null)}
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -177,20 +240,31 @@ export function BlogCategoriesManager() {
               ) : (
                 <div className="flex items-center gap-4">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{category.name}</p>
+                    <p className="truncate text-sm font-medium">
+                      {category.name}
+                    </p>
+
                     <p className="truncate text-xs text-muted-foreground">
-                      {category.postCount} published · /blog?category={category.slug}
-                      {category.description ? ` · ${category.description}` : ""}
+                      {category.postCount} published · /blog?category=
+                      {category.slug}
+                      {category.description
+                        ? ` · ${category.description}`
+                        : ""}
                     </p>
                   </div>
+
                   <button
                     type="button"
                     onClick={() => startEdit(category)}
                     className="interactive rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
                     aria-label={`Edit ${category.name}`}
                   >
-                    <Pencil className="size-4" aria-hidden="true" />
+                    <Pencil
+                      className="size-4"
+                      aria-hidden="true"
+                    />
                   </button>
+
                   <button
                     type="button"
                     disabled={deleteMutation.isPending}
@@ -198,7 +272,10 @@ export function BlogCategoriesManager() {
                     className="interactive rounded-md p-1.5 text-muted-foreground hover:bg-danger/10 hover:text-danger disabled:pointer-events-none disabled:opacity-40"
                     aria-label={`Delete ${category.name}`}
                   >
-                    <Trash2 className="size-4" aria-hidden="true" />
+                    <Trash2
+                      className="size-4"
+                      aria-hidden="true"
+                    />
                   </button>
                 </div>
               )}

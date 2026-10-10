@@ -5,6 +5,10 @@ export function getAllUsers(params: UserListParams) {
   return apiClient<ApiResponse<UserListItem[]>>("/users", { params });
 }
 
+export function getUserById(id: string) {
+  return apiClient<ApiResponse<UserListItem>>(`/users/${id}`);
+}
+
 export function updateUserRole(id: string, role: UserRole) {
   return apiClient<ApiResponse<Pick<UserListItem, "id" | "name" | "email" | "role">>>(`/users/${id}/role`, {
     method: "PATCH",

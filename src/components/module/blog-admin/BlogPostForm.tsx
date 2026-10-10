@@ -29,7 +29,13 @@ import { Label } from "@/components/ui/label";
 import { BlogContent } from "@/components/module/blog";
 import { BLOG_STATUS_CLASS, BLOG_STATUS_LABEL } from "./status";
 
-const COVER_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const COVER_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+];
+
 const COVER_MAX_BYTES = 5 * 1024 * 1024;
 
 const TEXTAREA_CLASS =
@@ -47,13 +53,15 @@ function Field({
   id: string;
   label: string;
   hint?: string;
-  error?: string | undefined;
+  error?: string;
   children: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
+
       {children}
+
       {error ? (
         <p role="alert" className="text-xs text-danger">
           {error}
@@ -68,7 +76,9 @@ function Field({
 export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
   const router = useRouter();
 
-  const { data: categoriesData, isPending: categoriesPending } = useBlogCategories();
+  const { data: categoriesData, isPending: categoriesPending } =
+    useBlogCategories();
+
   const categories = categoriesData?.data ?? [];
 
   const createMutation = useCreateBlogPost();
@@ -81,8 +91,12 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [content, setContent] = useState(post?.content ?? "");
   const [categoryId, setCategoryId] = useState(post?.category.id ?? "");
-  const [tagsRaw, setTagsRaw] = useState(post?.tags.map((t) => t.name).join(", ") ?? "");
-  const [coverImage, setCoverImage] = useState<string | null>(post?.coverImage ?? null);
+  const [tagsRaw, setTagsRaw] = useState(
+    post?.tags.map((tag) => tag.name).join(", ") ?? "",
+  );
+  const [coverImage, setCoverImage] = useState<string | null>(
+    post?.coverImage ?? null,
+  );
 
   const [mode, setMode] = useState<"write" | "preview">("write");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -94,9 +108,16 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
   // Warn before a refresh or tab close throws away unsaved writing.
   useEffect(() => {
     if (!dirty) return;
-    const handler = (event: BeforeUnloadEvent) => event.preventDefault();
+
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+
     window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
+
+    return () => {
+      window.removeEventListener("beforeunload", handler);
+    };
   }, [dirty]);
 
   const words = content.trim() ? content.trim().split(/\s+/).length : 0;
@@ -124,83 +145,130 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
     }
 
     const next: Record<string, string> = {};
+
     for (const issue of parsed.error.issues) {
       const key = String(issue.path[0] ?? "form");
-      if (!next[key]) next[key] = issue.message;
+
+      if (!next[key]) {
+        next[key] = issue.message;
+      }
     }
+
     setErrors(next);
     return null;
   }
 
-  async function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
+  async function handleCoverFile(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
+
+    // Allow selecting the same file again after an unsuccessful attempt.
+    event.target.value = "";
+
     if (!file) return;
 
     if (!COVER_TYPES.includes(file.type)) {
-      notify.error("Unsupported image", "Use a JPG, PNG, WebP or GIF image.");
+      notify.error(
+        "Unsupported image",
+        "Use a JPG, PNG, WebP or GIF image.",
+      );
       return;
     }
 
     if (file.size > COVER_MAX_BYTES) {
-      notify.error("Image is too large", "Choose an image under 5 MB.");
+      notify.error(
+        "Image is too large",
+        "Choose an image under 5 MB.",
+      );
       return;
     }
 
     try {
-      const res = await uploadMutation.mutateAsync(file);
-      setCoverImage(res.data.url);
+      const response = await uploadMutation.mutateAsync(file);
+
+      setCoverImage(response.data.url);
       setDirty(true);
     } catch (error) {
-      notify.error("Couldn't upload image", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't upload image",
+        isApiError(error) ? error.message : undefined,
+      );
     }
   }
 
-  async function publishAfterSave(id: string, wasDraftCopy: string) {
+  async function publishAfterSave(
+    id: string,
+    errorMessage: string,
+  ): Promise<boolean> {
     try {
       await publishMutation.mutateAsync(id);
+
       notify.success("Post published");
       return true;
     } catch (error) {
-      notify.error(wasDraftCopy, isApiError(error) ? error.message : undefined);
+      notify.error(
+        errorMessage,
+        isApiError(error) ? error.message : undefined,
+      );
+
       return false;
     }
   }
 
   async function handleSave(publish: boolean) {
     const values = validate();
+
     if (!values) return;
 
     setAction(publish ? "publish" : "draft");
 
     try {
       if (post) {
-        await updateMutation.mutateAsync({ id: post.id, payload: { ...values, coverImage } });
+        await updateMutation.mutateAsync({
+          id: post.id,
+          payload: {
+            ...values,
+            coverImage,
+          },
+        });
+
         setDirty(false);
 
         if (publish && post.status !== "PUBLISHED") {
-          await publishAfterSave(post.id, "Saved, but couldn't publish");
+          await publishAfterSave(
+            post.id,
+            "Saved, but couldn't publish",
+          );
         } else {
           notify.success("Changes saved");
         }
+
         return;
       }
 
-      const res = await createMutation.mutateAsync({
+      const response = await createMutation.mutateAsync({
         ...values,
         ...(coverImage ? { coverImage } : {}),
       });
+
       setDirty(false);
 
       if (publish) {
-        await publishAfterSave(res.data.id, "Saved as a draft, but couldn't publish");
+        await publishAfterSave(
+          response.data.id,
+          "Saved as a draft, but couldn't publish",
+        );
       } else {
         notify.success("Draft saved");
       }
 
-      router.replace(`/admin/blog/${res.data.id}`);
+      router.replace(`/admin/blog/${response.data.id}`);
     } catch (error) {
-      notify.error("Couldn't save post", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't save post",
+        isApiError(error) ? error.message : undefined,
+      );
     } finally {
       setAction(null);
     }
@@ -208,14 +276,24 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
 
   async function handleUnpublish() {
     if (!post) return;
-    if (!window.confirm("Unpublish this post? It will disappear from the public blog.")) return;
+
+    const confirmed = window.confirm(
+      "Unpublish this post? It will disappear from the public blog.",
+    );
+
+    if (!confirmed) return;
 
     setAction("unpublish");
+
     try {
       await unpublishMutation.mutateAsync(post.id);
+
       notify.success("Moved back to draft");
     } catch (error) {
-      notify.error("Couldn't unpublish", isApiError(error) ? error.message : undefined);
+      notify.error(
+        "Couldn't unpublish",
+        isApiError(error) ? error.message : undefined,
+      );
     } finally {
       setAction(null);
     }
@@ -225,8 +303,8 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         void handleSave(false);
       }}
       className="flex flex-col gap-6"
@@ -239,6 +317,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
           >
             {BLOG_STATUS_LABEL[post.status]}
           </span>
+
           {isPublished ? (
             <Link
               href={`/blog/${post.slug}`}
@@ -247,11 +326,16 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
               className="interactive inline-flex items-center gap-1.5 text-primary hover:underline"
             >
               View on site
-              <ExternalLink className="size-3.5" aria-hidden="true" />
+              <ExternalLink
+                className="size-3.5"
+                aria-hidden="true"
+              />
             </Link>
           ) : null}
+
           <span className="text-xs text-muted-foreground">
-            The URL (/blog/{post.slug}) stays the same even if you change the title.
+            The URL (/blog/{post.slug}) stays the same even if you
+            change the title.
           </span>
         </div>
       ) : null}
@@ -260,7 +344,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
         <Input
           id="blog-title"
           value={title}
-          onChange={(e) => edit(setTitle)(e.target.value)}
+          onChange={(event) => edit(setTitle)(event.target.value)}
           placeholder="A clear, specific headline"
           aria-invalid={Boolean(errors.title)}
         />
@@ -275,7 +359,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
         <textarea
           id="blog-excerpt"
           value={excerpt}
-          onChange={(e) => edit(setExcerpt)(e.target.value)}
+          onChange={(event) => edit(setExcerpt)(event.target.value)}
           rows={3}
           className={TEXTAREA_CLASS}
           aria-invalid={Boolean(errors.excerpt)}
@@ -283,26 +367,41 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
       </Field>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Field id="blog-category" label="Category" error={errors.categoryId}>
+        <Field
+          id="blog-category"
+          label="Category"
+          error={errors.categoryId}
+        >
           <select
             id="blog-category"
             value={categoryId}
-            onChange={(e) => edit(setCategoryId)(e.target.value)}
+            onChange={(event) =>
+              edit(setCategoryId)(event.target.value)
+            }
             disabled={categoriesPending}
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             aria-invalid={Boolean(errors.categoryId)}
           >
-            <option value="">{categoriesPending ? "Loading..." : "Select a category"}</option>
+            <option value="">
+              {categoriesPending
+                ? "Loading..."
+                : "Select a category"}
+            </option>
+
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </select>
+
           {!categoriesPending && categories.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               No categories yet.{" "}
-              <Link href="/admin/blog/categories" className="text-primary hover:underline">
+              <Link
+                href="/admin/blog/categories"
+                className="text-primary hover:underline"
+              >
                 Create one first
               </Link>
               .
@@ -319,7 +418,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
           <Input
             id="blog-tags"
             value={tagsRaw}
-            onChange={(e) => edit(setTagsRaw)(e.target.value)}
+            onChange={(event) => edit(setTagsRaw)(event.target.value)}
             placeholder="hiring, proctoring, checklist"
             aria-invalid={Boolean(errors.tags)}
           />
@@ -328,6 +427,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
 
       <div className="flex flex-col gap-1.5">
         <Label>Cover image</Label>
+
         {coverImage ? (
           <div className="flex flex-wrap items-start gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -336,6 +436,7 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
               alt="Cover preview"
               className="aspect-video w-64 rounded-lg border border-border object-cover"
             />
+
             <Button
               type="button"
               variant="outline"
@@ -345,7 +446,10 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
                 setDirty(true);
               }}
             >
-              <Trash2 className="size-3.5" aria-hidden="true" />
+              <Trash2
+                className="size-3.5"
+                aria-hidden="true"
+              />
               Remove
             </Button>
           </div>
@@ -353,15 +457,23 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
           <label
             className={cn(
               "interactive flex w-fit cursor-pointer items-center gap-2 rounded-md border border-dashed border-border px-4 py-3 text-sm text-muted-foreground hover:bg-accent",
-              uploadMutation.isPending && "pointer-events-none opacity-60",
+              uploadMutation.isPending &&
+                "pointer-events-none opacity-60",
             )}
           >
-            <ImagePlus className="size-4" aria-hidden="true" />
-            {uploadMutation.isPending ? "Uploading..." : "Upload an image (JPG, PNG, WebP or GIF, up to 5 MB)"}
+            <ImagePlus
+              className="size-4"
+              aria-hidden="true"
+            />
+
+            {uploadMutation.isPending
+              ? "Uploading..."
+              : "Upload an image (JPG, PNG, WebP or GIF, up to 5 MB)"}
+
             <input
               type="file"
               accept={COVER_TYPES.join(",")}
-              onChange={(e) => void handleCoverFile(e)}
+              onChange={(event) => void handleCoverFile(event)}
               className="sr-only"
             />
           </label>
@@ -370,8 +482,14 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="blog-content">Content (Markdown)</Label>
-          <div className="flex gap-1 lg:hidden" role="group" aria-label="Editor view">
+          <Label htmlFor="blog-content">
+            Content (Markdown)
+          </Label>
+
+          {/* Accessibility fix: use fieldset and legend for the related controls. */}
+          <fieldset className="m-0 flex min-w-0 gap-1 border-0 p-0 lg:hidden">
+            <legend className="sr-only">Editor view</legend>
+
             {(["write", "preview"] as const).map((value) => (
               <Button
                 key={value}
@@ -384,21 +502,34 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
                 {value === "write" ? "Write" : "Preview"}
               </Button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className={cn("flex flex-col gap-1.5", mode === "preview" && "hidden lg:flex")}>
+          <div
+            className={cn(
+              "flex flex-col gap-1.5",
+              mode === "preview" && "hidden lg:flex",
+            )}
+          >
             <textarea
               id="blog-content"
               value={content}
-              onChange={(e) => edit(setContent)(e.target.value)}
+              onChange={(event) =>
+                edit(setContent)(event.target.value)
+              }
               rows={22}
               spellCheck
-              className={cn(TEXTAREA_CLASS, "font-mono leading-relaxed")}
-              placeholder={"## A heading\n\nWrite in Markdown. **Bold**, lists, links, code blocks and tables are supported."}
+              className={cn(
+                TEXTAREA_CLASS,
+                "font-mono leading-relaxed",
+              )}
+              placeholder={
+                "## A heading\n\nWrite in Markdown. **Bold**, lists, links, code blocks and tables are supported."
+              }
               aria-invalid={Boolean(errors.content)}
             />
+
             {errors.content ? (
               <p role="alert" className="text-xs text-danger">
                 {errors.content}
@@ -419,7 +550,9 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
             {content.trim() ? (
               <BlogContent markdown={content} />
             ) : (
-              <p className="text-sm text-muted-foreground">Nothing to preview yet.</p>
+              <p className="text-sm text-muted-foreground">
+                Nothing to preview yet.
+              </p>
             )}
           </div>
         </div>
@@ -428,9 +561,14 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
       <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
         {isPublished ? (
           <>
-            <Button type="submit" isLoading={action === "draft"} disabled={busy}>
+            <Button
+              type="submit"
+              isLoading={action === "draft"}
+              disabled={busy}
+            >
               Save changes
             </Button>
+
             <Button
               type="button"
               variant="outline"
@@ -443,9 +581,15 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
           </>
         ) : (
           <>
-            <Button type="submit" variant="outline" isLoading={action === "draft"} disabled={busy}>
+            <Button
+              type="submit"
+              variant="outline"
+              isLoading={action === "draft"}
+              disabled={busy}
+            >
               Save draft
             </Button>
+
             <Button
               type="button"
               isLoading={action === "publish"}
@@ -456,10 +600,16 @@ export function BlogPostForm({ post }: { post?: BlogPostDetail }) {
             </Button>
           </>
         )}
+
         <Button asChild type="button" variant="ghost">
           <Link href="/admin/blog">Back to posts</Link>
         </Button>
-        {dirty ? <span className="text-xs text-muted-foreground">Unsaved changes</span> : null}
+
+        {dirty ? (
+          <span className="text-xs text-muted-foreground">
+            Unsaved changes
+          </span>
+        ) : null}
       </div>
     </form>
   );

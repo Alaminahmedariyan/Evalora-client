@@ -8,6 +8,8 @@ import { CONSENT_TYPE_LABEL, REVOCABLE_CONSENT_TYPES } from "@/constants/consent
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ConsentType } from "@/types";
 
+const SKELETON_KEYS = ["sk-consent-1", "sk-consent-2", "sk-consent-3"];
+
 export function ConsentToggleList() {
   const { data, isPending } = useMyConsents();
   const updateMutation = useUpdateConsent();
@@ -24,8 +26,8 @@ export function ConsentToggleList() {
   if (isPending) {
     return (
       <div className="flex flex-col gap-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
+        {SKELETON_KEYS.map((id) => (
+          <Skeleton key={id} className="h-10 w-full" />
         ))}
       </div>
     );

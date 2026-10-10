@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { deleteUser, getAllUsers, updateUserRole, updateUserStatus } from "@/api";
+import { deleteUser, getAllUsers, getUserById, updateUserRole, updateUserStatus } from "@/api";
 import type { UserListParams, UserRole, UserStatus } from "@/types";
 
 export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ["users", params],
     queryFn: () => getAllUsers(params),
+  });
+}
+
+export function useUser(id: string) {
+  return useQuery({
+    queryKey: ["users", "detail", id],
+    queryFn: () => getUserById(id),
+    enabled: !!id,
+    retry: false,
   });
 }
 

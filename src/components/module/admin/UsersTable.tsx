@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Trash2, Users } from "lucide-react";
 
 import type { UserRole, UserStatus } from "@/types";
@@ -123,8 +124,8 @@ export function UsersTable() {
 
       {isPending ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full" />
+          {Array.from({ length: 5 }, (_, index) => (
+            <Skeleton key={`user-skeleton-${index + 1}`} className="h-14 w-full" />
           ))}
         </div>
       ) : isError ? (
@@ -141,7 +142,9 @@ export function UsersTable() {
                   <th className="px-4 py-3 font-medium">Role</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Joined</th>
-                  <th className="px-4 py-3" />
+                  <th className="px-4 py-3">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +160,9 @@ export function UsersTable() {
                           </Avatar>
                           <div className="min-w-0">
                             <p className="truncate font-medium">
-                              {user.name}
+                              <Link href={`/admin/users/${user.id}`} className="hover:text-primary">
+                                {user.name}
+                              </Link>
                               {isSelf ? <span className="ml-2 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">You</span> : null}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">{user.email}</p>

@@ -23,6 +23,8 @@ function formatWhen(iso: string) {
   return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
+const SKELETON_KEYS = ["sk-msg-1", "sk-msg-2", "sk-msg-3", "sk-msg-4"];
+
 type CardProps = {
   message: ContactMessage;
   busy: boolean;
@@ -51,7 +53,7 @@ function MessageCard({ message, busy, onOpen, onStatus, onDelete }: CardProps) {
       >
         <span
           className={cn("mt-1.5 size-2 shrink-0 rounded-full", isNew ? "bg-primary" : "bg-transparent")}
-          aria-label={isNew ? "Unread" : undefined}
+          aria-hidden="true"
         />
         <div className="min-w-0 flex-1">
           <p className={cn("truncate text-sm", isNew ? "font-semibold" : "font-medium")}>
@@ -177,8 +179,8 @@ export function ContactMessagesList() {
 
       {isPending ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
+          {SKELETON_KEYS.map((id) => (
+            <Skeleton key={id} className="h-16 w-full" />
           ))}
         </div>
       ) : isError ? (

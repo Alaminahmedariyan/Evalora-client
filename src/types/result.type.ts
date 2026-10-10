@@ -30,3 +30,11 @@ export interface Result {
 export interface ComputeRanksResult {
   ranked: number;
 }
+
+export interface ReleaseResultsResult {
+  released: boolean;
+  // Candidates with a fully graded result, who were just notified.
+  notified: number;
+  // Results still waiting for manual grading.
+  waitingForGrading: number;
+}

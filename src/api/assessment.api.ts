@@ -45,6 +45,7 @@ export function getAssessmentVersions(id: string) {
   return apiClient<ApiResponse<AssessmentVersion[]>>(`/assessments/${id}/versions`);
 }
 
+// The backend route is mounted under /assessments, so the path needs that prefix.
 export function restoreAssessmentVersion(versionId: string) {
-  return apiClient<ApiResponse<AssessmentDetail>>(`/versions/${versionId}/restore`, { method: "PATCH" });
+  return apiClient<ApiResponse<AssessmentDetail>>(`/assessments/versions/${versionId}/restore`, { method: "PATCH" });
 }

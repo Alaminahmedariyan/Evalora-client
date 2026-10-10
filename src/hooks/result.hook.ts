@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { computeRanks, getResultByAttemptId, getResultsForAssessment } from "@/api";
+import { computeRanks, getResultByAttemptId, getResultsForAssessment, releaseAssessmentResults } from "@/api";
 
 export function useResultByAttempt(attemptId: string) {
   return useQuery({
@@ -27,6 +27,19 @@ export function useComputeRanks(assessmentId: string) {
       // computeRanks only returns a count, not the updated leaderboard —
       // refetch to actually see the new rank numbers.
       void queryClient.invalidateQueries({ queryKey: ["results", "assessment", assessmentId] });
+    },
+  });
+}
+
+export function useReleaseResults(assessmentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => releaseAssessmentResults(assessmentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["assessment", assessmentId] });
+      void queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      void queryClient.invalidateQueries({ queryKey: ["results"] });
+      void queryClient.invalidateQueries({ queryKey: ["result"] });
     },
   });
 }

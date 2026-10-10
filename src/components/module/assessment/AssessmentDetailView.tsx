@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, Eye, Pencil, Repeat } from "lucide-react";
+import { Calendar, Clock, Eye, EyeOff, Pencil, Repeat } from "lucide-react";
 import Link from "next/link";
 
 import type { AssessmentDetail } from "@/types";
@@ -12,10 +12,12 @@ import {
   useDeleteAssessment,
   useMyCompany,
   usePublishAssessment,
+  useReleaseResults,
 } from "@/hooks";
 import { notify } from "@/lib/toast";
 import { celebrate } from "@/lib/confetti";
 import { isApiError } from "@/lib/apiClient";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -40,6 +42,7 @@ function formatDate(value: string | null) {
 
 const VISIBLE_TO_CANDIDATES = ["PUBLISHED", "ACTIVE"] as const;
 const HAS_HISTORY_TO_SHOW = ["PUBLISHED", "ACTIVE", "CLOSED"] as const;
+const RESULTS_RELEASED_BY_STATUS = ["CLOSED", "ARCHIVED"] as const;
 
 export function AssessmentDetailView({
   assessment,
@@ -49,11 +52,14 @@ export function AssessmentDetailView({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [releaseOpen, setReleaseOpen] = useState(false);
 
   const publishMutation = usePublishAssessment();
   const closeMutation = useCloseAssessment();
   const deleteMutation = useDeleteAssessment();
   const createVersionMutation = useCreateAssessmentVersion();
+  const releaseMutation = useReleaseResults(assessment.id);
 
   const { data: companyRes } = useMyCompany();
   const companyUnverified = companyRes?.data ? !companyRes.data.isVerified : false;
@@ -65,6 +71,12 @@ export function AssessmentDetailView({
   const hasHistoryToShow = (
     HAS_HISTORY_TO_SHOW as readonly string[]
   ).includes(assessment.status);
+
+  // Mirrors the backend rule: candidates see results once the recruiter
+  // releases them, or once the assessment is closed.
+  const resultsReleased =
+    assessment.showResultImmediately ||
+    (RESULTS_RELEASED_BY_STATUS as readonly string[]).includes(assessment.status);
 
   async function handlePublish() {
     try {
@@ -97,10 +109,28 @@ export function AssessmentDetailView({
     }
   }
 
-  async function handleDelete() {
-    if (!window.confirm(`Delete "${assessment.title}"? This can't be undone.`))
-      return;
+  async function handleRelease() {
+    try {
+      const res = await releaseMutation.mutateAsync();
+      const { notified, waitingForGrading } = res.data;
 
+      notify.success(
+        "Results released",
+        `${notified} candidate${notified === 1 ? "" : "s"} notified.${
+          waitingForGrading > 0
+            ? ` ${waitingForGrading} more will be notified when their grading finishes.`
+            : ""
+        }`,
+      );
+    } catch (error) {
+      notify.error(
+        "Couldn't release results",
+        isApiError(error) ? error.message : undefined,
+      );
+    }
+  }
+
+  async function handleDelete() {
     try {
       await deleteMutation.mutateAsync(assessment.id);
       notify.success("Assessment deleted");
@@ -183,6 +213,51 @@ export function AssessmentDetailView({
         ) : null}
       </div>
 
+      {assessment.status !== "DRAFT" ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-4">
+          <span
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-full",
+              resultsReleased
+                ? "bg-success/10 text-success"
+                : "bg-warning/10 text-warning",
+            )}
+          >
+            {resultsReleased ? (
+              <Eye className="size-4" aria-hidden="true" />
+            ) : (
+              <EyeOff className="size-4" aria-hidden="true" />
+            )}
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              {resultsReleased
+                ? "Results are visible to candidates"
+                : "Results are hidden from candidates"}
+            </p>
+
+            <p className="text-xs text-muted-foreground">
+              {resultsReleased
+                ? assessment.showResultImmediately
+                  ? "Each candidate sees their result as soon as it is graded."
+                  : "This assessment is closed, so candidates can see their results."
+                : "Candidates see their results after you release them, or when you close the assessment."}
+            </p>
+          </div>
+
+          {!resultsReleased ? (
+            <Button
+              size="sm"
+              onClick={() => setReleaseOpen(true)}
+              isLoading={releaseMutation.isPending}
+            >
+              Release results
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-2">
         {assessment.status === "DRAFT" ? (
           <>
@@ -201,7 +276,7 @@ export function AssessmentDetailView({
 
             <Button
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => setDeleteOpen(true)}
               isLoading={deleteMutation.isPending}
             >
               Delete
@@ -275,8 +350,17 @@ export function AssessmentDetailView({
 
       {isOpenForInvites ? (
         <div>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Invitations</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <h2 className="text-sm font-semibold">Invitations</h2>
+              <Link
+                href={`/recruiter/assessments/${assessment.id}/invitations`}
+                className="text-xs text-primary hover:underline"
+              >
+                Manage all
+              </Link>
+            </div>
+
             <InviteCandidatesForm assessmentId={assessment.id} />
           </div>
 
@@ -284,7 +368,16 @@ export function AssessmentDetailView({
         </div>
       ) : hasHistoryToShow ? (
         <div>
-          <h2 className="mb-3 text-sm font-semibold">Invitations</h2>
+          <div className="mb-3 flex items-center gap-3">
+            <h2 className="text-sm font-semibold">Invitations</h2>
+            <Link
+              href={`/recruiter/assessments/${assessment.id}/invitations`}
+              className="text-xs text-primary hover:underline"
+            >
+              Manage all
+            </Link>
+          </div>
+
           <InvitationList assessmentId={assessment.id} />
         </div>
       ) : null}
@@ -312,6 +405,15 @@ export function AssessmentDetailView({
       </div>
 
       <ConfirmDialog
+        open={releaseOpen}
+        onOpenChange={setReleaseOpen}
+        title="Release results to candidates?"
+        description="Candidates with a graded result are notified and can see their score right away. Candidates still waiting for grading are notified when it finishes. This can't be undone."
+        confirmLabel="Release results"
+        onConfirm={() => void handleRelease()}
+      />
+
+      <ConfirmDialog
         open={closeOpen}
         onOpenChange={setCloseOpen}
         title="Close this assessment?"
@@ -322,6 +424,16 @@ export function AssessmentDetailView({
         }
         confirmLabel="Close assessment"
         onConfirm={() => void handleClose()}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete this assessment?"
+        description={`"${assessment.title}" will be deleted. This can't be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => void handleDelete()}
       />
     </div>
   );

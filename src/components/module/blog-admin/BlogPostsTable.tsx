@@ -24,6 +24,7 @@ import { TablePagination } from "@/components/ui/table-pagination";
 import { BLOG_STATUS_CLASS, BLOG_STATUS_LABEL } from "./status";
 
 const STATUS_FILTERS: BlogPostStatus[] = ["PUBLISHED", "DRAFT", "ARCHIVED"];
+const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5"];
 
 export function BlogPostsTable() {
   const router = useRouter();
@@ -115,8 +116,8 @@ export function BlogPostsTable() {
 
       {isPending ? (
         <div className="flex flex-col gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full" />
+          {SKELETON_KEYS.map((id) => (
+            <Skeleton key={id} className="h-14 w-full" />
           ))}
         </div>
       ) : isError ? (
