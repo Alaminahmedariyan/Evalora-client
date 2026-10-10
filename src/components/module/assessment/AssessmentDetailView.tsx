@@ -349,18 +349,19 @@ export function AssessmentDetailView({
       </div>
 
       {isOpenForInvites ? (
-        <div>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <h2 className="text-sm font-semibold">Invitations</h2>
-              <Link
-                href={`/recruiter/assessments/${assessment.id}/invitations`}
-                className="text-xs text-primary hover:underline"
-              >
-                Manage all
-              </Link>
-            </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold">Invitations</h2>
+            <Link
+              href={`/recruiter/assessments/${assessment.id}/invitations`}
+              className="text-xs text-primary hover:underline"
+            >
+              Manage all
+            </Link>
+          </div>
 
+          {/* A button when closed, a full-width panel when open. */}
+          <div>
             <InviteCandidatesForm assessmentId={assessment.id} />
           </div>
 

@@ -32,6 +32,8 @@ export function useInviteCandidates(assessmentId: string) {
       inviteCandidates(assessmentId, payload, idempotencyKey),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["invitations", "assessment", assessmentId] });
+      // Invitations count against the plan's 30-day limit, so usage changed.
+      void queryClient.invalidateQueries({ queryKey: ["company", "subscription"] });
     },
   });
 }

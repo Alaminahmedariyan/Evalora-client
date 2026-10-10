@@ -26,3 +26,9 @@ export function getAllPayments(params: PaymentListParams) {
 export function getPaymentById(id: string) {
   return apiClient<ApiResponse<Payment>>(`/payments/${id}`);
 }
+
+// Asks the backend to check a still-pending payment with Stripe and returns
+// the up-to-date payment.
+export function syncPayment(id: string) {
+  return apiClient<ApiResponse<Payment>>(`/payments/${id}/sync`, { method: "POST" });
+}
