@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
@@ -372,8 +372,19 @@ function CapabilityStrip() {
   );
 }
 
+// Server e false, browser e hydrate howar por true. Eta diye hydration mismatch ashe na.
+const subscribeNoop = () => () => {};
+
 export function HomeHero() {
-  const reduced = useReducedMotion() ?? false;
+  const prefersReduced = useReducedMotion() ?? false;
+  const hydrated = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
+  // Prothom render e (server + browser dutote) shobshomoy false, tai HTML mile jay.
+  const reduced = hydrated && prefersReduced;
+
   const [active, setActive] = useState(0);
   const variants = useMemo(() => buildVariants(reduced), [reduced]);
 
