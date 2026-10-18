@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -21,6 +25,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HomeAuthButton } from "./HomeAuthButton";
 
+// Koto millisecond por por recruiter <-> candidate bodlabe
+const SLIDE_INTERVAL = 7000;
+
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 type HeroStat = { icon: LucideIcon; value: string; label: string };
 
 type HeroSlide = {
@@ -30,6 +39,8 @@ type HeroSlide = {
   headingLines: [string, string];
   highlight: string;
   highlightClass: string;
+  glowA: string;
+  glowB: string;
   description: string;
   primaryLabel: string;
   secondaryLabel: string;
@@ -39,7 +50,7 @@ type HeroSlide = {
   image: { src: string; alt: string };
 };
 
-// Recruiter ebong candidate, duita hero block ekhane ache. Lekha bodlate hole shudhu ekhane bodlan.
+// Prothome recruiter, tarpor candidate. Lekha bodlate hole shudhu ekhane bodlan.
 const HERO_SLIDES: HeroSlide[] = [
   {
     id: "recruiter",
@@ -48,6 +59,8 @@ const HERO_SLIDES: HeroSlide[] = [
     headingLines: ["Hire developers based", "on what they can"],
     highlight: "actually build.",
     highlightClass: "from-blue-500 via-violet-500 to-fuchsia-500",
+    glowA: "bg-blue-400/25 dark:bg-blue-500/25",
+    glowB: "bg-violet-400/25 dark:bg-violet-500/20",
     description:
       "Build assessments with multiple-choice, coding and written questions, invite candidates by email and review ranked results. Proctoring signals and AI-assisted grading are in one place.",
     primaryLabel: "Create a Free Account",
@@ -72,6 +85,8 @@ const HERO_SLIDES: HeroSlide[] = [
     headingLines: ["Show your skills", "through"],
     highlight: "real coding tasks.",
     highlightClass: "from-cyan-500 via-blue-500 to-violet-500",
+    glowA: "bg-cyan-400/25 dark:bg-cyan-500/20",
+    glowB: "bg-blue-400/25 dark:bg-blue-500/20",
     description:
       "Accept an invitation and take a timed assessment with coding, multiple-choice and written questions. Get your score and rank once it is evaluated, and keep a profile that you control.",
     primaryLabel: "Start as a Candidate",
@@ -102,15 +117,60 @@ const CAPABILITIES = [
   "Candidate profiles",
 ];
 
-function delay(ms: number) {
-  return { animationDelay: `${ms}ms` };
+function buildVariants(reduced: boolean) {
+  // Parent: ekta ekta kore ashbe (visible) ar ekta ekta kore jabe (exit, niche theke upore)
+  const container: Variants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: reduced ? 0 : 0.07, delayChildren: 0.05 } },
+    exit: { transition: { staggerChildren: reduced ? 0 : 0.04, staggerDirection: -1 } },
+  };
+
+  const item: Variants = {
+    hidden: {
+      opacity: 0,
+      y: reduced ? 0 : 24,
+      filter: reduced ? "blur(0px)" : "blur(8px)",
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: reduced ? 0.2 : 0.55, ease: EASE },
+    },
+    exit: {
+      opacity: 0,
+      y: reduced ? 0 : -14,
+      filter: reduced ? "blur(0px)" : "blur(4px)",
+      transition: { duration: reduced ? 0.15 : 0.22, ease: "easeIn" },
+    },
+  };
+
+  const image: Variants = {
+    hidden: { opacity: 0, x: reduced ? 0 : 70, scale: reduced ? 1 : 0.95 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { duration: reduced ? 0.2 : 0.75, ease: EASE, delay: reduced ? 0 : 0.15 },
+    },
+    exit: {
+      opacity: 0,
+      x: reduced ? 0 : -50,
+      scale: reduced ? 1 : 0.97,
+      transition: { duration: reduced ? 0.15 : 0.3, ease: "easeIn" },
+    },
+  };
+
+  return { container, item, image };
 }
 
-function HeroStats({ stats }: { stats: HeroStat[] }) {
+type HeroVariants = ReturnType<typeof buildVariants>;
+
+function HeroStats({ stats, variants }: { stats: HeroStat[]; variants: HeroVariants }) {
   return (
-    <ul
-      className="animate-fade-up mt-7 grid w-full max-w-[620px] grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card/75 shadow-[0_15px_45px_rgba(60,82,145,0.1)] backdrop-blur-xl sm:grid-cols-4"
-      style={delay(400)}
+    <motion.ul
+      variants={variants.item}
+      className="mt-7 grid w-full max-w-[620px] grid-cols-2 overflow-hidden rounded-2xl border border-border bg-card/75 shadow-[0_15px_45px_rgba(60,82,145,0.1)] backdrop-blur-xl sm:grid-cols-4"
     >
       {stats.map((stat, index) => (
         <li
@@ -131,96 +191,109 @@ function HeroStats({ stats }: { stats: HeroStat[] }) {
           </div>
         </li>
       ))}
-    </ul>
+    </motion.ul>
   );
 }
 
-function HeroImage({ image, priority }: { image: HeroSlide["image"]; priority: boolean }) {
+function HeroImage({
+  slide,
+  variants,
+  reduced,
+}: {
+  slide: HeroSlide;
+  variants: HeroVariants;
+  reduced: boolean;
+}) {
   return (
-    <div
-      className="animate-fade-up relative mx-auto w-full max-w-[700px] lg:max-w-none"
-      style={delay(200)}
+    <motion.div
+      variants={variants.image}
+      className="relative mx-auto w-full max-w-[700px] lg:max-w-none"
     >
-      {/* Soft colour glows */}
+      {/* Soft colour glows (slide onujayi rong bodlay) */}
       <div
         aria-hidden="true"
-        className="absolute left-[10%] top-[12%] -z-10 h-[55%] w-[75%] rounded-full bg-blue-400/25 blur-[90px] dark:bg-blue-500/25"
+        className={cn("absolute left-[10%] top-[12%] -z-10 h-[55%] w-[75%] rounded-full blur-[90px]", slide.glowA)}
       />
       <div
         aria-hidden="true"
-        className="absolute bottom-[-4%] right-[8%] -z-10 h-36 w-[60%] rounded-full bg-violet-400/25 blur-[70px] dark:bg-violet-500/20"
+        className={cn("absolute bottom-[-4%] right-[8%] -z-10 h-36 w-[60%] rounded-full blur-[70px]", slide.glowB)}
       />
 
-      {/* Image box. Chobir ratio onujayi aspect-[4/3] bodle nin */}
-      <div className="relative aspect-[4/3] w-full">
+      {/* Halka floating animation */}
+      <motion.div
+        animate={reduced ? undefined : { y: [0, -10, 0] }}
+        transition={reduced ? undefined : { duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        // Chobir ratio onujayi aspect-[4/3] bodle nin
+        className="relative aspect-[4/3] w-full"
+      >
         <Image
-          src={image.src}
-          alt={image.alt}
+          src={slide.image.src}
+          alt={slide.image.alt}
           fill
-          priority={priority}
+          priority
           sizes="(min-width: 1024px) 50vw, 100vw"
           className="object-contain"
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-function HeroBlock({ slide, index }: { slide: HeroSlide; index: number }) {
-  const isFirst = index === 0;
-  // Page e shudhu ekta h1 thakbe, tai prothom block h1 ar bakigulo h2
-  const Heading = isFirst ? "h1" : "h2";
+function HeroSlideView({
+  slide,
+  variants,
+  reduced,
+}: {
+  slide: HeroSlide;
+  variants: HeroVariants;
+  reduced: boolean;
+}) {
+  const { item } = variants;
 
   return (
-    <div
-      id={slide.id}
-      className={cn(
-        "mx-auto grid max-w-[1480px] items-center gap-10 px-5 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6",
-        isFirst
-          ? "pb-10 pt-10 sm:pt-14 lg:min-h-[700px] lg:pt-16"
-          : "py-10 lg:min-h-[640px] lg:py-14",
-      )}
+    <motion.div
+      variants={variants.container}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="grid w-full items-center gap-10 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-6"
     >
       {/* Left: text */}
       <div className="relative z-20 flex flex-col items-start">
-        <div
-          className="animate-fade-up mb-7 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/75 py-1 pl-1 pr-4 text-[11px] font-medium text-muted-foreground shadow-[0_8px_30px_rgba(71,92,160,0.1)] backdrop-blur-xl"
-          style={delay(0)}
+        <motion.div
+          variants={item}
+          className="mb-7 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/75 py-1 pl-1 pr-4 text-[11px] font-medium text-muted-foreground shadow-[0_8px_30px_rgba(71,92,160,0.1)] backdrop-blur-xl"
         >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/10 px-3 py-1.5 font-semibold text-primary">
             <slide.badgeIcon className="size-3" aria-hidden="true" />
             {slide.badge}
           </span>
           <span>Next-Gen Assessment Platform</span>
-        </div>
+        </motion.div>
 
-        <Heading
-          className="animate-fade-up text-[clamp(2.5rem,4vw,4.6rem)] font-extrabold leading-[1.02] tracking-[-0.04em] text-foreground"
-          style={delay(80)}
-        >
+        {/* Heading er proti line alada kore ashbe/jabe */}
+        <h1 className="text-[clamp(2.5rem,4vw,4.6rem)] font-extrabold leading-[1.02] tracking-[-0.04em] text-foreground">
           {slide.headingLines.map((line) => (
-            <span key={line} className="block">
+            <motion.span key={line} variants={item} className="block">
               {line}
-            </span>
+            </motion.span>
           ))}
-          <span
-            className={cn(
-              "block bg-gradient-to-r bg-clip-text pb-2 text-transparent",
-              slide.highlightClass,
-            )}
+          <motion.span
+            variants={item}
+            className={cn("block bg-gradient-to-r bg-clip-text pb-2 text-transparent", slide.highlightClass)}
           >
             {slide.highlight}
-          </span>
-        </Heading>
+          </motion.span>
+        </h1>
 
-        <p
-          className="animate-fade-up mt-5 max-w-[540px] text-base leading-7 text-muted-foreground sm:text-[17px]"
-          style={delay(160)}
+        <motion.p
+          variants={item}
+          className="mt-5 max-w-[540px] text-base leading-7 text-muted-foreground sm:text-[17px]"
         >
           {slide.description}
-        </p>
+        </motion.p>
 
-        <div className="animate-fade-up mt-8 flex flex-wrap gap-3" style={delay(240)}>
+        <motion.div variants={item} className="mt-8 flex flex-wrap gap-3">
           <HomeAuthButton
             guestLabel={slide.primaryLabel}
             size="xl"
@@ -238,9 +311,9 @@ function HeroBlock({ slide, index }: { slide: HeroSlide; index: number }) {
               {slide.secondaryLabel}
             </Link>
           </Button>
-        </div>
+        </motion.div>
 
-        <ul className="animate-fade-up mt-6 flex flex-wrap gap-2.5" style={delay(320)}>
+        <motion.ul variants={item} className="mt-6 flex flex-wrap gap-2.5">
           {slide.trustPoints.map((point) => (
             <li
               key={point}
@@ -252,15 +325,77 @@ function HeroBlock({ slide, index }: { slide: HeroSlide; index: number }) {
               {point}
             </li>
           ))}
-        </ul>
+        </motion.ul>
 
-        <HeroStats stats={slide.stats} />
+        <HeroStats stats={slide.stats} variants={variants} />
       </div>
 
       {/* Right: image */}
       <div className="relative z-10 min-w-0">
-        <HeroImage image={slide.image} priority={isFirst} />
+        <HeroImage slide={slide} variants={variants} reduced={reduced} />
       </div>
+    </motion.div>
+  );
+}
+
+function HeroSwitcher({
+  active,
+  paused,
+  reduced,
+  onSelect,
+}: {
+  active: number;
+  paused: boolean;
+  reduced: boolean;
+  onSelect: (index: number) => void;
+}) {
+  return (
+    <div className="flex justify-center pb-8 pt-2">
+      <fieldset className="relative m-0 inline-flex min-w-0 gap-1 rounded-full border border-border bg-card/75 p-1 shadow-[0_8px_30px_rgba(71,92,160,0.12)] backdrop-blur-xl">
+        <legend className="sr-only">Choose hero audience</legend>
+
+        {HERO_SLIDES.map((slide, index) => {
+          const isActive = index === active;
+
+          return (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => onSelect(index)}
+              aria-pressed={isActive}
+              className={cn(
+                "relative isolate overflow-hidden rounded-full px-5 py-2.5 text-xs font-semibold transition-colors",
+                isActive ? "text-white" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="hero-switcher-pill"
+                  className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
+
+              <span className="inline-flex items-center gap-2">
+                <slide.badgeIcon className="size-3.5" aria-hidden="true" />
+                {slide.badge}
+              </span>
+
+              {/* Porer slide e jawar progress bar */}
+              {isActive && !reduced && (
+                <motion.span
+                  key={`progress-${slide.id}`}
+                  aria-hidden="true"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: paused ? 0 : 1 }}
+                  transition={{ duration: paused ? 0.2 : SLIDE_INTERVAL / 1000, ease: "linear" }}
+                  className="absolute inset-x-4 bottom-1 h-0.5 origin-left rounded-full bg-white/70"
+                />
+              )}
+            </button>
+          );
+        })}
+      </fieldset>
     </div>
   );
 }
@@ -274,21 +409,75 @@ function CapabilityStrip() {
         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-border" />
       </div>
 
-      <ul className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-x-9 gap-y-3 px-4 text-muted-foreground/80 sm:gap-x-12">
+      <motion.ul
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.4 }}
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+        className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-x-9 gap-y-3 px-4 text-muted-foreground/80 sm:gap-x-12"
+      >
         {CAPABILITIES.map((item) => (
-          <li key={item} className="flex items-center gap-2 text-sm font-semibold">
+          <motion.li
+            key={item}
+            variants={{
+              hidden: { opacity: 0, y: 12 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
+            }}
+            className="flex items-center gap-2 text-sm font-semibold"
+          >
             <Check className="size-4 text-primary" aria-hidden="true" />
             {item}
-          </li>
+          </motion.li>
         ))}
-      </ul>
+      </motion.ul>
     </div>
   );
 }
 
 export function HomeHero() {
+  const reduced = useReducedMotion() ?? false;
+  const sectionRef = useRef<HTMLElement>(null);
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const variants = useMemo(() => buildVariants(reduced), [reduced]);
+
+  // Mouse hero er upor thakle ba keyboard focus thakle auto slide thambe.
+  // Static element e handler na diye ref diye listener boshano hoyeche.
+  useEffect(() => {
+    const element = sectionRef.current;
+    if (!element) return;
+
+    const pause = () => setPaused(true);
+    const resume = () => setPaused(false);
+
+    element.addEventListener("mouseenter", pause);
+    element.addEventListener("mouseleave", resume);
+    element.addEventListener("focusin", pause);
+    element.addEventListener("focusout", resume);
+
+    return () => {
+      element.removeEventListener("mouseenter", pause);
+      element.removeEventListener("mouseleave", resume);
+      element.removeEventListener("focusin", pause);
+      element.removeEventListener("focusout", resume);
+    };
+  }, []);
+
+  // Auto slide: keu nije slide bodlale active bodlay, tai timer notun kore shuru hoy
+  useEffect(() => {
+    if (paused || reduced) return;
+
+    const timer = window.setTimeout(() => {
+      setActive((active + 1) % HERO_SLIDES.length);
+    }, SLIDE_INTERVAL);
+
+    return () => window.clearTimeout(timer);
+  }, [active, paused, reduced]);
+
+  const slide = HERO_SLIDES[active];
+
   return (
-    <section className="relative isolate overflow-x-clip">
+    <section ref={sectionRef} className="relative isolate overflow-x-clip">
       <div aria-hidden="true" className="hero-aurora" />
 
       {/* Wavy lavender band at the bottom */}
@@ -310,9 +499,13 @@ export function HomeHero() {
         />
       </svg>
 
-      {HERO_SLIDES.map((slide, index) => (
-        <HeroBlock key={slide.id} slide={slide} index={index} />
-      ))}
+      <div className="mx-auto flex max-w-[1480px] px-5 sm:px-8 lg:min-h-[720px] lg:items-center">
+        <AnimatePresence mode="wait">
+          <HeroSlideView key={slide.id} slide={slide} variants={variants} reduced={reduced} />
+        </AnimatePresence>
+      </div>
+
+      <HeroSwitcher active={active} paused={paused} reduced={reduced} onSelect={setActive} />
 
       <CapabilityStrip />
     </section>
