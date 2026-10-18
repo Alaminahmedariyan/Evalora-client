@@ -120,11 +120,20 @@ export function ProblemDetailView({ problem }: { problem: ProblemDetail }) {
         </section>
       ) : null}
 
-      {problem.type === "WRITTEN" ? (
-        <div className="flex items-start gap-2 rounded-xl border border-border p-4 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          Written answers are graded manually from the grading queue.
-        </div>
+           {problem.type === "WRITTEN" ? (
+        <section className="card-evalora flex flex-col gap-3 p-5 md:p-6">
+          <h2 className="text-sm font-semibold">Grading rubric</h2>
+          {problem.rubric ? (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{problem.rubric}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">No rubric yet. Edit this problem to add one.</p>
+          )}
+          <div className="flex items-start gap-2 rounded-lg bg-muted/60 p-3 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            Written answers go to the grading queue. If the candidate allowed AI processing, an AI suggestion is
+            shown there, and you make the final grade.
+          </div>
+        </section>
       ) : null}
     </div>
   );

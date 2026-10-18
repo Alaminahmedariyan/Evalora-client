@@ -36,7 +36,7 @@ const TYPE_CHOICES: {
 }[] = [
   { value: "MCQ", label: "MCQ", description: "Pick the right option(s). Graded automatically.", icon: CheckSquare },
   { value: "CODING", label: "Coding", description: "Write a solution. You grade it with test cases.", icon: Code2 },
-  { value: "WRITTEN", label: "Written", description: "Free-text answer. You grade it manually.", icon: FileText },
+  { value: "WRITTEN", label: "Written", description: "Free-text answer. AI suggests a score, you decide.", icon: FileText },
 ];
 
 const emptyOption = (order: number): KeyedOption => ({
@@ -60,6 +60,7 @@ export function CreateProblemForm() {
   const [problemType, setProblemType] = useState<ProblemTypeChoice>("MCQ");
   const [mcqType, setMcqType] = useState<McqType>("SINGLE_CHOICE");
   const [explanation, setExplanation] = useState("");
+  const [rubric, setRubric] = useState("");
   const [options, setOptions] = useState<KeyedOption[]>([emptyOption(1), emptyOption(2)]);
   const [testCases, setTestCases] = useState<KeyedTestCase[]>([emptyTestCase()]);
 
@@ -105,7 +106,7 @@ export function CreateProblemForm() {
           testCases: cleanTestCases,
         };
       } else {
-        payload = { ...base, type: "WRITTEN" };
+        payload = { ...base, type: "WRITTEN", rubric: rubric.trim() || undefined };
       }
 
       const parsed = createProblemSchema.safeParse(payload);
@@ -341,6 +342,29 @@ export function CreateProblemForm() {
           </form.Field>
 
           <TestCasesEditor testCases={testCases} onChange={setTestCases} />
+        </FormSection>
+      ) : null}
+
+      {problemType === "WRITTEN" ? (
+        <FormSection
+          title="Grading rubric"
+          description="Tell the AI (and yourself) what a good answer contains. Candidates never see this."
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="rubric">Rubric (optional)</Label>
+            <textarea
+              id="rubric"
+              value={rubric}
+              onChange={(e) => setRubric(e.target.value)}
+              rows={5}
+              className={TEXTAREA_CLASS}
+              placeholder="Full marks: clear definition, one relevant example, correct reasoning. Deduct for missing example or factual errors."
+            />
+            <p className="text-xs text-muted-foreground">
+              At least 10 characters if you fill it in. Without a rubric the AI judges correctness, clarity and
+              completeness. The AI only suggests a score, you make the final grade.
+            </p>
+          </div>
         </FormSection>
       ) : null}
 

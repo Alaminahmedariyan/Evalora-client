@@ -1,3 +1,5 @@
+export type AiReviewStatus = "NOT_APPLICABLE" | "PENDING_REVIEW" | "APPROVED" | "OVERRIDDEN";
+
 export interface SubmissionTestCase {
   id: string;
   input: string | null;
@@ -26,11 +28,17 @@ export interface SubmissionEvaluationSummary {
   status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
   isAutoEvaluated: boolean;
   feedback: string | null;
+  aiScore: number | null;
+  aiFeedback: string | null;
+  aiModel: string | null;
+  aiEvaluatedAt: string | null;
+  reviewStatus: AiReviewStatus;
+  reviewedAt: string | null;
   evaluatedAt: string | null;
   evaluatorId: string | null;
 }
 
-// Matches SUBMISSION_GRADING_SELECT exactly — the recruiter/admin grading view.
+// Matches SUBMISSION_GRADING_SELECT exactly - the recruiter/admin grading view.
 export interface GradingSubmission {
   id: string;
   attemptId: string;
@@ -40,7 +48,7 @@ export interface GradingSubmission {
   language: string | null;
   status: string;
   submittedAt: string | null;
-    attempt?: {
+  attempt?: {
     id: string;
     assessmentId?: string;
     attemptNumber: number;

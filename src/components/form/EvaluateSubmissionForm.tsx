@@ -3,10 +3,10 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { ArrowRight, Check, Copy, Info } from "lucide-react";
+import { ArrowRight, Check, Copy, Info, Sparkles } from "lucide-react";
 
 import type { GradingSubmission } from "@/types";
-import { useEvaluateSubmission } from "@/hooks";
+import { useApproveAiSuggestion, useEvaluateSubmission } from "@/hooks";
 import { isApiError } from "@/lib/apiClient";
 import { notify } from "@/lib/toast";
 import { celebrate } from "@/lib/confetti";
@@ -42,6 +42,7 @@ export function EvaluateSubmissionForm({
 }) {
   const router = useRouter();
   const evaluateMutation = useEvaluateSubmission();
+  const approveMutation = useApproveAiSuggestion();
   const [formError, setFormError] = useState<string | null>(null);
 
   // The ref decides what happens after saving; the state only drives which
@@ -57,6 +58,13 @@ export function EvaluateSubmissionForm({
   // stored on the evaluation. defaultMarks is only a fallback.
   const maxMarks = submission.evaluation?.maxScore ?? submission.problem.defaultMarks;
 
+  const evaluation = submission.evaluation;
+  const aiScore = evaluation?.aiScore ?? null;
+  const aiPending =
+    evaluation?.reviewStatus === "PENDING_REVIEW" && aiScore !== null && evaluation.status !== "COMPLETED";
+  const aiReviewed =
+    (evaluation?.reviewStatus === "APPROVED" || evaluation?.reviewStatus === "OVERRIDDEN") && aiScore !== null;
+
   const [testCaseResults, setTestCaseResults] = useState(
     submission.problem.testCases.map((tc) => {
       const existing = submission.testCaseResults.find((r) => r.testCaseId === tc.id);
@@ -64,10 +72,29 @@ export function EvaluateSubmissionForm({
     }),
   );
 
+  function goAfterGrading(action: SaveAction) {
+    if (action === "next" && nextSubmissionId) {
+      notify.success("Submission graded", "Opening the next one.");
+      router.push(`/recruiter/evaluations/${nextSubmissionId}`);
+      return;
+    }
+
+    // Nothing else is waiting in this assessment: the grading is finished.
+    if (queue?.ready && !nextSubmissionId && assessmentId) {
+      celebrate();
+      notify.success("All submissions graded", "Results are updated for this assessment.");
+      router.push(`/recruiter/assessments/${assessmentId}`);
+      return;
+    }
+
+    notify.success("Submission graded");
+    router.push("/recruiter/evaluations");
+  }
+
   const form = useForm({
     defaultValues: {
-      score: submission.evaluation?.score ?? 0,
-      feedback: submission.evaluation?.feedback ?? "",
+      score: evaluation?.score ?? 0,
+      feedback: evaluation?.feedback ?? "",
     },
     onSubmit: async ({ value }) => {
       setFormError(null);
@@ -101,22 +128,7 @@ export function EvaluateSubmissionForm({
         return;
       }
 
-      if (action === "next" && nextSubmissionId) {
-        notify.success("Submission graded", "Opening the next one.");
-        router.push(`/recruiter/evaluations/${nextSubmissionId}`);
-        return;
-      }
-
-      // Nothing else is waiting in this assessment: the grading is finished.
-      if (queue?.ready && !nextSubmissionId && assessmentId) {
-        celebrate();
-        notify.success("All submissions graded", "Results are updated for this assessment.");
-        router.push(`/recruiter/assessments/${assessmentId}`);
-        return;
-      }
-
-      notify.success("Submission graded");
-      router.push("/recruiter/evaluations");
+      goAfterGrading(action);
     },
   });
 
@@ -124,6 +136,28 @@ export function EvaluateSubmissionForm({
     afterSaveRef.current = action;
     setActiveAction(action);
     void form.handleSubmit();
+  }
+
+  async function approveAi() {
+    setFormError(null);
+
+    try {
+      await approveMutation.mutateAsync(submission.id);
+    } catch (error) {
+      const message = isApiError(error) ? error.message : "Couldn't approve the AI suggestion.";
+      setFormError(message);
+      notify.error("Approval failed", message);
+      return;
+    }
+
+    goAfterGrading(hasNext ? "next" : "list");
+  }
+
+  function useAiAsStartingPoint() {
+    if (aiScore === null) return;
+    form.setFieldValue("score", Math.min(aiScore, maxMarks));
+    if (evaluation?.aiFeedback) form.setFieldValue("feedback", evaluation.aiFeedback);
+    notify.info("AI suggestion copied", "Change anything you disagree with, then save.");
   }
 
   function toggleTestCase(testCaseId: string, defaultPoints: number, passed: boolean) {
@@ -182,7 +216,7 @@ export function EvaluateSubmissionForm({
 
   const isCoding = submission.problem.type === "CODING";
   const testCaseTotal = testCaseResults.filter((r) => r.passed).reduce((sum, r) => sum + r.points, 0);
-  const alreadyGraded = submission.evaluation?.status === "COMPLETED";
+  const alreadyGraded = evaluation?.status === "COMPLETED";
 
   const quickScores = [
     { label: "0", value: 0 },
@@ -248,12 +282,62 @@ export function EvaluateSubmissionForm({
           </div>
         ) : null}
 
-        {alreadyGraded && submission.evaluation ? (
+        {aiPending && evaluation ? (
+          <div className="card-evalora flex flex-col gap-3 border-primary/30 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
+                <Sparkles className="size-4 text-primary" aria-hidden="true" />
+                AI suggestion
+              </span>
+              <span className="stat-number text-lg font-semibold">
+                {aiScore}
+                <span className="text-sm font-normal text-muted-foreground">/{maxMarks}</span>
+              </span>
+            </div>
+
+            {evaluation.aiFeedback ? (
+              <p className="whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
+                {evaluation.aiFeedback}
+              </p>
+            ) : null}
+
+            <p className="text-[11px] text-muted-foreground">
+              Suggested by {evaluation.aiModel ?? "an AI model"}. It is only a suggestion. You make the final grade.
+            </p>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                disabled={approveMutation.isPending || evaluateMutation.isPending}
+                isLoading={approveMutation.isPending}
+                onClick={() => void approveAi()}
+              >
+                <Check className="size-4" aria-hidden="true" />
+                Approve AI grade
+              </Button>
+
+              <Button type="button" variant="outline" size="sm" onClick={useAiAsStartingPoint}>
+                Edit before saving
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {aiReviewed && evaluation ? (
+          <div className="flex items-start gap-2 rounded-xl border border-border p-3 text-xs text-muted-foreground">
+            <Sparkles className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <p>
+              AI suggested {aiScore}/{maxMarks}.{" "}
+              {evaluation.reviewStatus === "APPROVED" ? "You approved that score." : "You overrode it with your own grade."}
+            </p>
+          </div>
+        ) : null}
+
+        {alreadyGraded && evaluation ? (
           <div className="flex items-start gap-2 rounded-xl border border-primary/25 bg-primary/5 p-3 text-xs">
             <Info className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
             <p>
-              Already graded {submission.evaluation.score}/{submission.evaluation.maxScore}. Saving replaces that
-              grade.
+              Already graded {evaluation.score}/{evaluation.maxScore}. Saving replaces that grade.
             </p>
           </div>
         ) : null}
@@ -365,7 +449,7 @@ export function EvaluateSubmissionForm({
                   <details className="text-muted-foreground">
                     <summary className="cursor-pointer select-none">Input and expected output</summary>
                     <div className="mt-2 grid gap-2 font-mono">
-                      <pre className="whitespace-pre-wrap rounded-md bg-muted/60 p-2">{tc.input || "—"}</pre>
+                      <pre className="whitespace-pre-wrap rounded-md bg-muted/60 p-2">{tc.input || "-"}</pre>
                       <pre className="whitespace-pre-wrap rounded-md bg-muted/60 p-2">{tc.expectedOutput}</pre>
                     </div>
                   </details>
@@ -417,7 +501,7 @@ export function EvaluateSubmissionForm({
                   <Button
                     type="button"
                     size="lg"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || approveMutation.isPending}
                     isLoading={isSubmitting && activeAction === "next"}
                     onClick={() => save("next")}
                   >
@@ -428,7 +512,7 @@ export function EvaluateSubmissionForm({
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || approveMutation.isPending}
                     isLoading={isSubmitting && activeAction === "list"}
                     onClick={() => save("list")}
                   >
@@ -439,7 +523,7 @@ export function EvaluateSubmissionForm({
                 <Button
                   type="button"
                   size="lg"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || approveMutation.isPending}
                   isLoading={isSubmitting}
                   onClick={() => save("list")}
                 >

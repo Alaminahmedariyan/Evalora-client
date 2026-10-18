@@ -19,7 +19,7 @@ export interface TestCase {
   memoryLimitMb: number | null;
 }
 
-// Matches PROBLEM_LIST_SELECT — lean shape for browse/search.
+// Matches PROBLEM_LIST_SELECT - lean shape for browse/search.
 export interface ProblemListItem {
   id: string;
   title: string;
@@ -31,12 +31,13 @@ export interface ProblemListItem {
   createdAt: string;
 }
 
-// Matches PROBLEM_DETAIL_SELECT — full shape with nested MCQ/test case data.
+// Matches PROBLEM_DETAIL_SELECT - full shape with nested MCQ/test case data.
 export interface ProblemDetail {
   id: string;
   title: string;
   slug: string;
   description: string;
+  rubric: string | null;
   type: ProblemType;
   difficulty: Difficulty;
   defaultMarks: number;
@@ -76,7 +77,7 @@ type BaseProblemFields = {
 export type CreateProblemPayload =
   | (BaseProblemFields & { type: "MCQ"; mcqType?: McqType; explanation?: string; options: McqOptionInput[] })
   | (BaseProblemFields & { type: "CODING"; timeLimitSeconds?: number; testCases: TestCaseInput[] })
-  | (BaseProblemFields & { type: "WRITTEN" });
+  | (BaseProblemFields & { type: "WRITTEN"; rubric?: string });
 
 export interface ProblemListParams {
   page?: number;
@@ -91,6 +92,7 @@ export interface ProblemListParams {
 export type UpdateProblemPayload = Partial<{
   title: string;
   description: string;
+  rubric: string;
   difficulty: Difficulty;
   defaultMarks: number;
   isPublic: boolean;

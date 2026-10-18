@@ -15,6 +15,7 @@ import {
   ScrollText,
   UserCircle,
   Users,
+  Zap,
 } from "lucide-react";
 
 import type { UserRole } from "@/types";
@@ -31,8 +32,9 @@ export const navByRole: Record<UserRole, NavItem[]> = {
     { label: "Users", href: "/admin/users", icon: Users },
     { label: "Companies", href: "/admin/companies", icon: Building2 },
     { label: "Payments", href: "/admin/payments", icon: CreditCard },
-     { label: "Blog", href: "/admin/blog", icon: Newspaper },
+    { label: "Blog", href: "/admin/blog", icon: Newspaper },
     { label: "Messages", href: "/admin/messages", icon: Inbox },
+    { label: "Automation", href: "/admin/automation", icon: Zap },
     { label: "Audit Logs", href: "/admin/audit-logs", icon: ScrollText },
   ],
   RECRUITER: [

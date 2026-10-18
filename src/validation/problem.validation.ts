@@ -41,6 +41,7 @@ const codingCreateSchema = z.object({
 const writtenCreateSchema = z.object({
   ...baseFields,
   type: z.literal("WRITTEN"),
+  rubric: z.string().trim().min(10, "Rubric must be at least 10 characters.").max(5000).optional(),
 });
 
 export const createProblemSchema = z
@@ -69,10 +70,11 @@ export const createProblemSchema = z
 export const baseProblemFields = z.object(baseFields);
 
 // Mirrors the backend's updateProblemSchema. `type` is deliberately absent
-// — it's immutable after creation (see problem.interface.ts's comment).
+// - it's immutable after creation (see problem.interface.ts's comment).
 export const updateProblemFields = z.object({
   title: z.string().trim().min(3).max(200).optional(),
   description: z.string().trim().min(10).max(10000).optional(),
+  rubric: z.string().trim().min(10, "Rubric must be at least 10 characters.").max(5000).optional(),
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]).optional(),
   defaultMarks: z.coerce.number().int().min(1).max(1000).optional(),
   isPublic: z.boolean().optional(),

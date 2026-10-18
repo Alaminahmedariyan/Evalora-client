@@ -4,11 +4,15 @@ import { Switch } from "@/components/ui/switch";
 import { useMyConsents, useUpdateConsent } from "@/hooks";
 import { isApiError } from "@/lib/apiClient";
 import { notify } from "@/lib/toast";
-import { CONSENT_TYPE_LABEL, REVOCABLE_CONSENT_TYPES } from "@/constants/consent";
+import {
+  CONSENT_TYPE_DESCRIPTION,
+  CONSENT_TYPE_LABEL,
+  REVOCABLE_CONSENT_TYPES,
+} from "@/constants/consent";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ConsentType } from "@/types";
 
-const SKELETON_KEYS = ["sk-consent-1", "sk-consent-2", "sk-consent-3"];
+const SKELETON_KEYS = ["sk-consent-1", "sk-consent-2", "sk-consent-3", "sk-consent-4"];
 
 export function ConsentToggleList() {
   const { data, isPending } = useMyConsents();
@@ -37,12 +41,27 @@ export function ConsentToggleList() {
 
   return (
     <div className="flex flex-col divide-y divide-border">
-      {consents.map((consent) => (
-        <div key={consent.consentType} className="flex items-center justify-between py-3">
-          <span className="text-sm">{CONSENT_TYPE_LABEL[consent.consentType]}</span>
-          <Switch checked={consent.granted} onCheckedChange={(checked) => handleToggle(consent.consentType, checked)} disabled={updateMutation.isPending} />
-        </div>
-      ))}
+      {consents.map((consent) => {
+        const description = CONSENT_TYPE_DESCRIPTION[consent.consentType];
+
+        return (
+          <div key={consent.consentType} className="flex items-start justify-between gap-4 py-3">
+            <div className="min-w-0">
+              <span className="text-sm">{CONSENT_TYPE_LABEL[consent.consentType]}</span>
+              {description ? (
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+              ) : null}
+            </div>
+
+            <Switch
+              checked={consent.granted}
+              onCheckedChange={(checked) => handleToggle(consent.consentType, checked)}
+              disabled={updateMutation.isPending}
+              aria-label={CONSENT_TYPE_LABEL[consent.consentType]}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

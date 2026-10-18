@@ -27,6 +27,7 @@ export function EditProblemForm({ problem, onSaved }: { problem: ProblemDetail; 
 
   const mcqType: McqType = problem.mcqProblem?.type ?? "SINGLE_CHOICE";
   const [explanation, setExplanation] = useState(problem.mcqProblem?.explanation ?? "");
+  const [rubric, setRubric] = useState(problem.rubric ?? "");
 
   const [options, setOptions] = useState<KeyedOption[]>(
     problem.mcqProblem?.options.map((option) => ({
@@ -78,6 +79,9 @@ export function EditProblemForm({ problem, onSaved }: { problem: ProblemDetail; 
         ...(problem.type === "CODING" && {
           timeLimitSeconds: value.timeLimitSeconds,
           testCases: cleanTestCases,
+        }),
+        ...(problem.type === "WRITTEN" && {
+          rubric: rubric.trim() || undefined,
         }),
       };
 
@@ -225,6 +229,28 @@ export function EditProblemForm({ problem, onSaved }: { problem: ProblemDetail; 
           </form.Field>
 
           <TestCasesEditor testCases={testCases} onChange={setTestCases} />
+        </FormSection>
+      ) : null}
+
+      {problem.type === "WRITTEN" ? (
+        <FormSection
+          title="Grading rubric"
+          description="Candidates never see this. The AI uses it to suggest a score."
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="rubric">Rubric</Label>
+            <textarea
+              id="rubric"
+              value={rubric}
+              onChange={(e) => setRubric(e.target.value)}
+              rows={5}
+              className={TEXTAREA_CLASS}
+              placeholder="What does a good answer contain?"
+            />
+            <p className="text-xs text-muted-foreground">
+              At least 10 characters. A saved rubric can be edited but not emptied.
+            </p>
+          </div>
         </FormSection>
       ) : null}
 

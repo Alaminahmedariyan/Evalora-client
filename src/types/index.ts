@@ -16,3 +16,4 @@ export * from "./consent.type";
 export * from "./blog.type";
 export * from "./contact.type";
 export * from "./account.type";
+export * from "./automation.type";

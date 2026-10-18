@@ -19,3 +19,9 @@ export function evaluateSubmission(id: string, payload: ManualEvaluationPayload)
     body: payload,
   });
 }
+
+export function approveAiSuggestion(id: string) {
+  return apiClient<ApiResponse<GradingSubmission>>(`/evaluations/submissions/${id}/approve-ai`, {
+    method: "POST",
+  });
+}
