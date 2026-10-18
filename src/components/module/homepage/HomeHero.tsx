@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HomeAuthButton } from "./HomeAuthButton";
 
-// Koto millisecond por por recruiter <-> candidate bodlabe
+// Koto millisecond por por recruiter <-> candidate bodlabe (7000 = 7 second)
 const SLIDE_INTERVAL = 7000;
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -338,68 +338,6 @@ function HeroSlideView({
   );
 }
 
-function HeroSwitcher({
-  active,
-  paused,
-  reduced,
-  onSelect,
-}: {
-  active: number;
-  paused: boolean;
-  reduced: boolean;
-  onSelect: (index: number) => void;
-}) {
-  return (
-    <div className="flex justify-center pb-8 pt-2">
-      <fieldset className="relative m-0 inline-flex min-w-0 gap-1 rounded-full border border-border bg-card/75 p-1 shadow-[0_8px_30px_rgba(71,92,160,0.12)] backdrop-blur-xl">
-        <legend className="sr-only">Choose hero audience</legend>
-
-        {HERO_SLIDES.map((slide, index) => {
-          const isActive = index === active;
-
-          return (
-            <button
-              key={slide.id}
-              type="button"
-              onClick={() => onSelect(index)}
-              aria-pressed={isActive}
-              className={cn(
-                "relative isolate overflow-hidden rounded-full px-5 py-2.5 text-xs font-semibold transition-colors",
-                isActive ? "text-white" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {isActive && (
-                <motion.span
-                  layoutId="hero-switcher-pill"
-                  className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500"
-                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                />
-              )}
-
-              <span className="inline-flex items-center gap-2">
-                <slide.badgeIcon className="size-3.5" aria-hidden="true" />
-                {slide.badge}
-              </span>
-
-              {/* Porer slide e jawar progress bar */}
-              {isActive && !reduced && (
-                <motion.span
-                  key={`progress-${slide.id}`}
-                  aria-hidden="true"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: paused ? 0 : 1 }}
-                  transition={{ duration: paused ? 0.2 : SLIDE_INTERVAL / 1000, ease: "linear" }}
-                  className="absolute inset-x-4 bottom-1 h-0.5 origin-left rounded-full bg-white/70"
-                />
-              )}
-            </button>
-          );
-        })}
-      </fieldset>
-    </div>
-  );
-}
-
 function CapabilityStrip() {
   return (
     <div className="relative bg-gradient-to-b from-transparent via-primary/[0.06] to-primary/[0.12] pb-8 pt-10">
@@ -436,48 +374,22 @@ function CapabilityStrip() {
 
 export function HomeHero() {
   const reduced = useReducedMotion() ?? false;
-  const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
   const variants = useMemo(() => buildVariants(reduced), [reduced]);
 
-  // Mouse hero er upor thakle ba keyboard focus thakle auto slide thambe.
-  // Static element e handler na diye ref diye listener boshano hoyeche.
+  // Auto switch: recruiter -> candidate -> recruiter -> ... (kono button nei)
   useEffect(() => {
-    const element = sectionRef.current;
-    if (!element) return;
-
-    const pause = () => setPaused(true);
-    const resume = () => setPaused(false);
-
-    element.addEventListener("mouseenter", pause);
-    element.addEventListener("mouseleave", resume);
-    element.addEventListener("focusin", pause);
-    element.addEventListener("focusout", resume);
-
-    return () => {
-      element.removeEventListener("mouseenter", pause);
-      element.removeEventListener("mouseleave", resume);
-      element.removeEventListener("focusin", pause);
-      element.removeEventListener("focusout", resume);
-    };
-  }, []);
-
-  // Auto slide: keu nije slide bodlale active bodlay, tai timer notun kore shuru hoy
-  useEffect(() => {
-    if (paused || reduced) return;
-
-    const timer = window.setTimeout(() => {
-      setActive((active + 1) % HERO_SLIDES.length);
+    const timer = window.setInterval(() => {
+      setActive((current) => (current + 1) % HERO_SLIDES.length);
     }, SLIDE_INTERVAL);
 
-    return () => window.clearTimeout(timer);
-  }, [active, paused, reduced]);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const slide = HERO_SLIDES[active];
 
   return (
-    <section ref={sectionRef} className="relative isolate overflow-x-clip">
+    <section className="relative isolate overflow-x-clip">
       <div aria-hidden="true" className="hero-aurora" />
 
       {/* Wavy lavender band at the bottom */}
@@ -499,13 +411,11 @@ export function HomeHero() {
         />
       </svg>
 
-      <div className="mx-auto flex max-w-[1480px] px-5 sm:px-8 lg:min-h-[720px] lg:items-center">
+      <div className="mx-auto flex max-w-[1480px] px-5 pb-8 sm:px-8 lg:min-h-[720px] lg:items-center">
         <AnimatePresence mode="wait">
           <HeroSlideView key={slide.id} slide={slide} variants={variants} reduced={reduced} />
         </AnimatePresence>
       </div>
-
-      <HeroSwitcher active={active} paused={paused} reduced={reduced} onSelect={setActive} />
 
       <CapabilityStrip />
     </section>
