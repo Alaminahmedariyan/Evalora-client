@@ -16,3 +16,4 @@ export * from "./blog.api";
 export * from "./contact.api";
 export * from "./account.api";
 export * from "./automation.api";
+export * from "./demo.api";

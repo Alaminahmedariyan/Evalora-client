@@ -16,3 +16,4 @@ export * from "./blog.hook";
 export * from "./contact.hook";
 export * from "./account.hook";
 export * from "./automation.hook";
+export * from "./demo.hook";

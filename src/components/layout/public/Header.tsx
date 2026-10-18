@@ -18,6 +18,9 @@ import {
 import Logo from "@/assets/svg/logo";
 import { NotificationBell } from "@/components/module/notification";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { DemoAccess } from "@/components/form/DemoAccess";
+
+const DEMO_EMAIL_DOMAIN = "@demo.evalora.app";
 
 const navLinks = [
   { label: "About", href: "/about" },
@@ -45,6 +48,10 @@ export function Header() {
   const logoutMutation = useLogout();
 
   const user = data?.data;
+
+  // Show the demo switcher to visitors and to people already in a demo
+  // account (so they can hop between roles), never to real signed-in users.
+  const showDemoAccess = !user || user.email.endsWith(DEMO_EMAIL_DOMAIN);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -110,7 +117,11 @@ export function Header() {
           })}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="hidden flex-1 justify-center md:flex">
+          {showDemoAccess ? <DemoAccess variant="navbar" /> : null}
+        </div>
+
+        <div className="ml-auto hidden items-center gap-2 md:ml-0 md:flex">
           <ThemeToggle />
 
           {user ? (
@@ -231,6 +242,8 @@ export function Header() {
             ))}
 
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
+              {showDemoAccess ? <DemoAccess /> : null}
+
               {user ? (
                 <>
                   <Button
